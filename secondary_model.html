@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>二次模型 - 转炉过程动态控制系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .secondary-header {
+            background: linear-gradient(135deg, #ff8800 0%, #cc6600 100%);
+            color: white;
+            padding: 20px 25px;
+            border-radius: 8px 8px 0 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .secondary-header h1 {
+            margin: 0 0 8px 0;
+            font-size: 24px;
+        }
+        
+        .secondary-header p {
+            margin: 0;
+            opacity: 0.95;
+            font-size: 13px;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            padding: 15px 25px;
+            background: white;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .nav-tab {
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid #ff8800;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #ff8800;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .nav-tab.active {
+            background: #ff8800;
+            color: white;
+        }
+        
+        .nav-tab:hover {
+            background: #ff8800;
+            color: white;
+        }
+
+        /* 传感器分类标签页 */
+        .sensor-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #d0d0d0;
+            overflow-x: auto;
+        }
+
+        .sensor-tab {
+            padding: 8px 15px;
+            background: #f5f5f7;
+            border: 2px solid #d0d0d0;
+            border-bottom: none;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+            color: #606060;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .sensor-tab.active {
+            background: white;
+            color: #0066cc;
+            border-color: #0066cc;
+            border-bottom: 2px solid white;
+            margin-bottom: -2px;
+        }
+
+        .sensor-tab:hover {
+            background: #e8eaed;
+        }
+
+        .sensor-content {
+            display: none;
+        }
+
+        .sensor-content.active {
+            display: block;
+        }
+
+        /* 多图表网格布局 */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .chart-card {
+            background: white;
+            border: 2px solid #d0d0d0;
+            border-left: 3px solid #0066cc;
+            padding: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+
+        .chart-card-title {
+            font-size: 11px;
+            font-weight: bold;
+            color: #0066cc;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .chart-card-canvas {
+            height: 180px;
+        }
+
+        /* 综合视图的大图 */
+        .chart-card.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .chart-card.full-width .chart-card-canvas {
+            height: 250px;
+        }
+
+        /* 实时数值显示 */
+        .realtime-value {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 8px;
+            background: rgba(0,102,204,0.05);
+            border-radius: 3px;
+            margin-bottom: 8px;
+        }
+
+        .realtime-value-label {
+            font-size: 10px;
+            color: #606060;
+        }
+
+        .realtime-value-number {
+            font-size: 13px;
+            font-weight: bold;
+            color: #0066cc;
+            font-family: 'Consolas', monospace;
+        }
+
+        /* 状态指示器 */
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .status-indicator.normal {
+            background: #00aa44;
+            box-shadow: 0 0 4px rgba(0,170,68,0.5);
+        }
+
+        .status-indicator.warning {
+            background: #ff8800;
+            box-shadow: 0 0 4px rgba(255,136,0,0.5);
+        }
+
+        .status-indicator.danger {
+            background: #cc0000;
+            box-shadow: 0 0 4px rgba(204,0,0,0.5);
+        }
+
+        /* 实时数值状态颜色 */
+        .realtime-value-number.status-warning {
+            color: #ff8800;
+        }
+
+        .realtime-value-number.status-danger {
+            color: #cc0000;
+        }
+
+        /* 滚动条优化 */
+        .left-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .left-panel::-webkit-scrollbar-track {
+            background: #f0f0f2;
+        }
+
+        .left-panel::-webkit-scrollbar-thumb {
+            background: #c0c0c0;
+            border-radius: 3px;
+        }
+
+        /* 图表卡片悬停效果 */
+        .chart-card:hover {
+            border-left-color: #ff8800;
+            box-shadow: 0 3px 10px rgba(0,102,204,0.15);
+            transform: translateY(-1px);
+            transition: all 0.2s;
+        }
+
+        /* 标签页滚动条 */
+        .sensor-tabs::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .sensor-tabs::-webkit-scrollbar-track {
+            background: #f0f0f2;
+        }
+
+        .sensor-tabs::-webkit-scrollbar-thumb {
+            background: #0066cc;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 二次模型标识头部 -->
+        <div class="secondary-header">
+            <h1>⚡ 二次模型 - 转炉过程动态控制系统</h1>
+            <p>实时监控吹炼过程，动态预测终点参数，智能推荐操作建议</p>
+        </div>
+        
+        <!-- 导航标签 -->
+        <div class="nav-tabs">
+            <a href="primary_model.html" class="nav-tab">一次模型（吹炼前预测）</a>
+            <a href="secondary_model.html" class="nav-tab active">二次模型（过程动态控制）</a>
+        </div>
+        
+        <!-- 顶部 -->
+        <div class="header">
+            <div class="header-left">
+                <div class="select-group">
+                    <label>工厂</label>
+                    <select id="factorySelect">
+                        <option>A厂转炉车间</option>
+                        <option>B厂转炉车间</option>
+                    </select>
+                </div>
+                <div class="select-group">
+                    <label>转炉规格</label>
+                    <select id="furnaceTypeSelect" onchange="updateFurnaceType()">
+                        <option value="150">150t转炉</option>
+                        <option value="250">250t转炉</option>
+                    </select>
+                </div>
+                <div class="select-group">
+                    <label>炉次</label>
+                    <select id="furnaceSelect" onchange="updateFurnaceData()">
+                        <option>150t-3#炉 - 20251102-001</option>
+                        <option>150t-3#炉 - 20251102-002</option>
+                        <option>250t-1#炉 - 20251102-003</option>
+                        <option>250t-1#炉 - 20251102-004</option>
+                    </select>
+                </div>
+                <div class="furnace-summary">
+                    <div class="summary-item">
+                        <span class="label">开始时间</span>
+                        <span class="value" id="startTime">10:32:15</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">铁水温度</span>
+                        <span class="value" id="ironTemp">1349.7°C</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">入炉[Si]</span>
+                        <span class="value" id="inputSi">0.38%</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">入炉[Mn]</span>
+                        <span class="value" id="inputMn">0.28%</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">入炉[P]</span>
+                        <span class="value" id="inputP">0.143‰</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">入炉[S]</span>
+                        <span class="value" id="inputS">0.008‰</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="status-light running">
+                    <div>吹炼中<br>12:35</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 左侧面板 -->
+        <div class="left-panel">
+            <div class="panel-title">⚙️ 输入与输出结构</div>
+            
+            <!-- 输入信号区域 -->
+            <div style="background: #f5f5f7; border: 2px solid #d0d0d0; border-left: 4px solid #0066cc; padding: 12px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <h4 style="margin: 0 0 10px 0; color: #0066cc; font-size: 13px;">🔹 输入信号（实时）</h4>
+                <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: rgba(0,102,204,0.08); border-bottom: 2px solid #d0d0d0;">
+                            <th style="padding: 6px; text-align: left; color: #606060;">分类</th>
+                            <th style="padding: 6px; text-align: left; color: #606060;">示例</th>
+                            <th style="padding: 6px; text-align: left; color: #606060;">来源</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom: 1px solid #e0e0e0;">
+                            <td style="padding: 6px; color: #303030; font-weight: bold;">吹氧系统</td>
+                            <td style="padding: 6px; color: #303030; font-family: 'Consolas', monospace;">Q_O₂(t), 累计氧量, 枪位h(t)</td>
+                            <td style="padding: 6px; color: #606060;">流量计、控制系统</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #e0e0e0;">
+                            <td style="padding: 6px; color: #303030; font-weight: bold;">炉气信号</td>
+                            <td style="padding: 6px; color: #303030; font-family: 'Consolas', monospace;">CO(t), CO₂(t), CO/(CO+CO₂), 炉气温度</td>
+                            <td style="padding: 6px; color: #606060;">炉口红外分析仪</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #e0e0e0;">
+                            <td style="padding: 6px; color: #303030; font-weight: bold;">声学/振动信号</td>
+                            <td style="padding: 6px; color: #303030; font-family: 'Consolas', monospace;">吹炼噪声强度、频谱特征</td>
+                            <td style="padding: 6px; color: #606060;">炉口麦克风、声发射传感器</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #e0e0e0;">
+                            <td style="padding: 6px; color: #303030; font-weight: bold;">光学信号</td>
+                            <td style="padding: 6px; color: #303030; font-family: 'Consolas', monospace;">火焰亮度、光谱分布</td>
+                            <td style="padding: 6px; color: #606060;">炉口光学探头</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #e0e0e0;">
+                            <td style="padding: 6px; color: #303030; font-weight: bold;">温度信号</td>
+                            <td style="padding: 6px; color: #303030; font-family: 'Consolas', monospace;">炉口红外测温T_IR(t)、浸入测温枪</td>
+                            <td style="padding: 6px; color: #606060;">红外仪、测温枪</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #e0e0e0;">
+                            <td style="padding: 6px; color: #303030; font-weight: bold;">工艺记录</td>
+                            <td style="padding: 6px; color: #303030; font-family: 'Consolas', monospace;">加料时刻、石灰/矿石加入量</td>
+                            <td style="padding: 6px; color: #606060;">控制系统日志</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 6px; color: #303030; font-weight: bold;">外部状态</td>
+                            <td style="padding: 6px; color: #303030; font-family: 'Consolas', monospace;">炉龄、炉次编号、环境温度</td>
+                            <td style="padding: 6px; color: #606060;">MES系统或操作台</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 输出结果区域 -->
+            <div style="background: rgba(255,136,0,0.08); border: 2px solid #ff8800; border-left: 4px solid #ff8800; padding: 12px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(255,136,0,0.15);">
+                <h4 style="margin: 0 0 10px 0; color: #ff8800; font-size: 13px;">🔹 输出结果（实时）</h4>
+                <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: rgba(255,136,0,0.1); border-bottom: 2px solid #ff8800;">
+                            <th style="padding: 6px; text-align: left; color: #606060;">输出项</th>
+                            <th style="padding: 6px; text-align: left; color: #606060;">说明</th>
+                            <th style="padding: 6px; text-align: center; color: #606060;">更新频率</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom: 1px solid #ffd699;">
+                            <td style="padding: 6px; color: #303030; font-weight: bold; font-family: 'Consolas', monospace;">T̂(t)</td>
+                            <td style="padding: 6px; color: #303030;">当前估计温度（软测量，不可直接测的内部温度）</td>
+                            <td style="padding: 6px; text-align: center; color: #606060;">1–5秒</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #ffd699;">
+                            <td style="padding: 6px; color: #303030; font-weight: bold; font-family: 'Consolas', monospace;">Ĉ(t)</td>
+                            <td style="padding: 6px; color: #303030;">当前估计碳含量（软测量碳浓度）</td>
+                            <td style="padding: 6px; text-align: center; color: #606060;">1–5秒</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #ffd699;">
+                            <td style="padding: 6px; color: #303030; font-weight: bold; font-family: 'Consolas', monospace;">FeÔ(t)</td>
+                            <td style="padding: 6px; color: #303030;">炉渣氧化性（炉渣状态估计）</td>
+                            <td style="padding: 6px; text-align: center; color: #606060;">5–10秒</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #ffd699;">
+                            <td style="padding: 6px; color: #303030; font-weight: bold;">阶段识别</td>
+                            <td style="padding: 6px; color: #303030;">初期/中期/末期/终点邻域</td>
+                            <td style="padding: 6px; text-align: center; color: #606060;">实时</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #ffd699;">
+                            <td style="padding: 6px; color: #303030; font-weight: bold; font-family: 'Consolas', monospace;">终点预测值</td>
+                            <td style="padding: 6px; color: #303030;">T_end_pred(t), C_end_pred(t)（若此刻停吹会得到的预测终点）</td>
+                            <td style="padding: 6px; text-align: center; color: #606060;">实时更新</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #ffd699;">
+                            <td style="padding: 6px; color: #303030; font-weight: bold;">ETA（剩余时间）</td>
+                            <td style="padding: 6px; color: #303030;">距离终点的预计时间</td>
+                            <td style="padding: 6px; text-align: center; color: #606060;">实时</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 6px; color: #303030; font-weight: bold;">控制建议</td>
+                            <td style="padding: 6px; color: #303030;">调枪位、调氧流、提前或延后停氧</td>
+                            <td style="padding: 6px; text-align: center; color: #606060;">实时/人工提示</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="panel-title">实时监控曲线 - 全参数显示</div>
+            
+            <!-- 传感器分类标签页 -->
+            <div class="sensor-tabs">
+                <div class="sensor-tab active" onclick="switchSensorTab('overview')">📊 综合视图</div>
+                <div class="sensor-tab" onclick="switchSensorTab('oxygen')">🔹 吹氧系统</div>
+                <div class="sensor-tab" onclick="switchSensorTab('gas')">💨 炉气信号</div>
+                <div class="sensor-tab" onclick="switchSensorTab('temp')">🌡️ 温度成分</div>
+                <div class="sensor-tab" onclick="switchSensorTab('slag')">⚗️ 炉渣状态</div>
+                <div class="sensor-tab" onclick="switchSensorTab('acoustic')">🔊 声光信号</div>
+                <div class="sensor-tab" onclick="switchSensorTab('equipment')">⚙️ 设备状态</div>
+            </div>
+
+            <!-- 综合视图 -->
+            <div class="sensor-content active" id="overview-content">
+                <div class="charts-grid">
+                    <div class="chart-card full-width">
+                        <div class="chart-card-title">关键参数综合趋势</div>
+                        <div class="chart-card-canvas">
+                            <canvas id="overviewChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="realtime-value">
+                            <span class="realtime-value-label">当前温度估计</span>
+                            <span class="realtime-value-number" id="rtTemp">1632°C</span>
+                        </div>
+                        <div class="chart-card-title">温度趋势</div>
+                        <div class="chart-card-canvas">
+                            <canvas id="overviewTempChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="realtime-value">
+                            <span class="realtime-value-label">当前碳含量估计</span>
+                            <span class="realtime-value-number" id="rtCarbon">0.082%</span>
+                        </div>
+                        <div class="chart-card-title">碳含量趋势</div>
+                        <div class="chart-card-canvas">
+                            <canvas id="overviewCarbonChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 吹氧系统 -->
+            <div class="sensor-content" id="oxygen-content">
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <div class="realtime-value">
+                            <span class="realtime-value-label">O₂流量 Q_O₂(t)</span>
+                            <span class="realtime-value-number" id="rtO2Flow">26850 Nm³/min</span>
+                        </div>
+                        <div class="chart-card-title">氧气流量</div>
+                        <div class="chart-card-canvas">
+                            <canvas id="oxygenFlowChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="realtime-value">
+                            <span class="realtime-value-label">累计氧量</span>
+                            <span class="realtime-value-number" id="rtO2Cumulative">12850 Nm³</span>
+                        </div>
+                        <div class="chart-card-title">累计氧量</div>
+                        <div class="chart-card-canvas">
+                            <canvas id="oxygenCumulativeChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="realtime-value">
+                            <span class="realtime-value-label">枪位高度 h(t)</span>
+                            <span class="realtime-value-number" id="rtLance">1580 mm</span>
+                        </div>
+                        <div class="chart-card-title">枪位高度</div>
+                        <div class="chart-card-canvas">
+                            <canvas id="lanceChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="realtime-value">
+                            <span class="realtime-value-label">供氧强度</span>
+                            <span class="realtime-value-number" id="rtO2Intensity">179 Nm³/t·min</span>
+                        </div>
+                        <div class="chart-card-title">供氧强度</div>
+                        <div class="chart-card-canvas">
+                            <canvas id="oxygenIntensityChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 炉气信号 -->
+            <div class="sensor-content" id="gas-content">
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <div class="realtime-value">
+                            <span class="realtime-value-label">烟气CO浓度</span>
+                            <span class="realtime-value-number status-warning" id="rtCO">24.5%</span>
+                        </div>
+                        <div class="chart-card-title">CO浓度</div>
+                        <div class="chart-card-canvas">
+                            <canvas id="coChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="realtime-value">
+                            <span class="realtime-value-label">烟气CO₂浓度</span>
+                            <span class="realtime-value-number" id="rtCO2">16.2%</span>
+                        </div>
+                        <div class="chart-card-title">CO₂浓度</div>
+                        <div class="chart-card-canvas">
+                            <canvas id="co2Chart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="realtime-value">
+                            <span class="realtime-value-label">CO/(CO+CO₂)比值</span>
+                            <span class="realtime-value-number" id="rtCORatio">0.602</span>
+                        </div>
+                        <div class="chart-card-title">碳氧比</div>
+                        <div class="chart-card-canvas">
+                            <canvas id="coRatioChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="realtime-value">
+                            <span class="realtime-value-label">炉气温度</span>
+                            <span class="realtime-value-number" id="rtGasTemp">1850°C</span>
+                        </div>
+                        <div class="chart-card-title">炉气温度</div>
+                        <div class="chart-card-canvas">
+                            <canvas id="gasTempChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 温度成分 -->
+            <div class="sensor-content" id="temp-content">
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <div class="realtime-value">
+                            <span class="realtime-value-label">估计温度 T̂(t)</span>
+                            <span class="realtime-value-number" id="rtTempEst">1632°C</span>
+                        </div>
+                        <div class="chart-card-title">当前估计温度（软测量）</div>
+                        <div class="chart-card-canvas">
+                            <canvas id="tempEstChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="realtime-value">
+                            <span class="realtime-value-label">红外测温 T_IR(t)</span>
+                            <span class="realtime-value-number" id="rtTempIR">1625°C</span>
+                        </div>
+                        <div class="chart-card-title">炉口红外测温</div>
+                        <div class="chart-card-canvas">
+                            <canvas id="tempIRChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="realtime-value">
+                            <span class="realtime-value-label">估计碳含量 Ĉ(t)</span>
+                            <span class="realtime-value-number" id="rtCarbonEst">0.082%</span>
+                        </div>
+                        <div class="chart-card-title">当前估计碳含量（软测量）</div>
+                        <div class="chart-card-canvas">
+                            <canvas id="carbonEstChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="realtime-value">
+                            <span class="realtime-value-label">氧活性/氧含量</span>
+                            <span class="realtime-value-number" id="rtOxygenContent">750 ppm</span>
+                        </div>
+                        <div class="chart-card-title">氧含量</div>
+                        <div class="chart-card-canvas">
+                            <canvas id="oxygenContentChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 炉渣状态 -->
+            <div class="sensor-content" id="slag-content">
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <div class="realtime-value">
+                            <span class="realtime-value-label">炉渣氧化性 FeÔ(t)</span>
+                            <span class="realtime-value-number" id="rtSlagOx">18.3%</span>
+                        </div>
+                        <div class="chart-card-title">炉渣氧化性</div>
+                        <div class="chart-card-canvas">
+                            <canvas id="slagOxChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="realtime-value">
+                            <span class="realtime-value-label">渣碱度 (CaO/SiO₂)</span>
+                            <span class="realtime-value-number" id="rtSlagBasicity">3.2</span>
+                        </div>
+                        <div class="chart-card-title">渣碱度</div>
+                        <div class="chart-card-canvas">
+                            <canvas id="slagBasicityChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="realtime-value">
+                            <span class="realtime-value-label">渣位高度</span>
+                            <span class="realtime-value-number" id="rtSlagLevel">850 mm</span>
+                        </div>
+                        <div class="chart-card-title">渣位高度</div>
+                        <div class="chart-card-canvas">
+                            <canvas id="slagLevelChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="realtime-value">
+                            <span class="realtime-value-label"><span class="status-indicator warning"></span>泡沫指数</span>
+                            <span class="realtime-value-number status-warning" id="rtFoamIndex">3.2</span>
+                        </div>
+                        <div class="chart-card-title">泡沫指数</div>
+                        <div class="chart-card-canvas">
+                            <canvas id="foamIndexChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 声光信号 -->
+            <div class="sensor-content" id="acoustic-content">
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <div class="realtime-value">
+                            <span class="realtime-value-label">吹炼噪声强度</span>
+                            <span class="realtime-value-number" id="rtNoise">98 dB</span>
+                        </div>
+                        <div class="chart-card-title">噪声强度</div>
+                        <div class="chart-card-canvas">
+                            <canvas id="noiseChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="realtime-value">
+                            <span class="realtime-value-label">火焰亮度</span>
+                            <span class="realtime-value-number" id="rtFlame">8250</span>
+                        </div>
+                        <div class="chart-card-title">火焰亮度</div>
+                        <div class="chart-card-canvas">
+                            <canvas id="flameChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card full-width">
+                        <div class="chart-card-title">频谱特征分析</div>
+                        <div class="chart-card-canvas">
+                            <canvas id="spectrumChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 设备状态 -->
+            <div class="sensor-content" id="equipment-content">
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <div class="realtime-value">
+                            <span class="realtime-value-label">顶压</span>
+                            <span class="realtime-value-number" id="rtPressure">0.62 MPa</span>
+                        </div>
+                        <div class="chart-card-title">顶压</div>
+                        <div class="chart-card-canvas">
+                            <canvas id="pressureChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="realtime-value">
+                            <span class="realtime-value-label">炉倾角</span>
+                            <span class="realtime-value-number" id="rtFurnaceAngle">2.1°</span>
+                        </div>
+                        <div class="chart-card-title">炉倾角</div>
+                        <div class="chart-card-canvas">
+                            <canvas id="furnaceAngleChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card full-width">
+                        <div class="realtime-value">
+                            <span class="realtime-value-label">底吹流量</span>
+                            <span class="realtime-value-number" id="rtBottomBlowing">82 Nm³/min</span>
+                        </div>
+                        <div class="chart-card-title">底吹流量</div>
+                        <div class="chart-card-canvas">
+                            <canvas id="bottomBlowingChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-title">当前状态估计（软测量）</div>
+            
+            <!-- 当前状态实时估计 -->
+            <div style="background: rgba(0,170,68,0.08); border: 2px solid #00aa44; border-left: 4px solid #00aa44; padding: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,170,68,0.15);">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px;">
+                    <div>
+                        <span style="color: #606060;">当前估计温度 T̂(t):</span><br>
+                        <strong style="color: #00aa44; font-size: 18px; font-family: 'Consolas', monospace;" id="currentTempEst">1632°C</strong>
+                        <span style="color: #999; font-size: 10px;">(更新: 2秒前)</span>
+                    </div>
+                    <div>
+                        <span style="color: #606060;">当前估计碳含量 Ĉ(t):</span><br>
+                        <strong style="color: #00aa44; font-size: 18px; font-family: 'Consolas', monospace;" id="currentCarbonEst">0.082%</strong>
+                        <span style="color: #999; font-size: 10px;">(更新: 3秒前)</span>
+                    </div>
+                    <div>
+                        <span style="color: #606060;">炉渣氧化性 FeÔ(t):</span><br>
+                        <strong style="color: #ff8800; font-size: 16px; font-family: 'Consolas', monospace;" id="currentSlagOx">18.3%</strong>
+                        <span style="color: #999; font-size: 10px;">(更新: 8秒前)</span>
+                    </div>
+                    <div>
+                        <span style="color: #606060;">阶段识别:</span><br>
+                        <strong style="color: #0066cc; font-size: 16px;" id="currentStage">末期</strong>
+                        <span style="color: #999; font-size: 10px;">(距终点邻域)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ETA剩余时间 -->
+            <div style="background: rgba(255,136,0,0.1); border: 2px solid #ff8800; border-left: 4px solid #ff8800; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(255,136,0,0.2); text-align: center;">
+                <div style="color: #606060; font-size: 12px; margin-bottom: 5px;">⏱️ ETA 剩余时间</div>
+                <div style="color: #ff8800; font-size: 28px; font-weight: bold; font-family: 'Consolas', monospace;" id="etaTime">3-5 分钟</div>
+                <div style="color: #606060; font-size: 11px; margin-top: 5px;">预计停吹时间: 12:38-12:40</div>
+            </div>
+
+            <div class="panel-title">终点预测值（实时更新）</div>
+            
+            <div class="prediction-card">
+                <h4>🌡️ 终点温度 T_end_pred(t)（目标1640-1660°C）</h4>
+                <div class="prediction-value" id="predTemp">1648°C</div>
+                <div class="prediction-confidence">置信区间: 1644 - 1652°C (90%)</div>
+                <div style="font-size: 10px; color: #999; margin-top: 5px;">若此刻停吹会得到的预测终点</div>
+            </div>
+
+            <div class="prediction-card">
+                <h4>⚗️ 终点碳含量 C_end_pred(t)（目标≤0.05%）</h4>
+                <div class="prediction-value" id="predCarbon">0.043%</div>
+                <div class="prediction-confidence">置信区间: 0.038 - 0.048% (90%)</div>
+                <div style="font-size: 10px; color: #999; margin-top: 5px;">若此刻停吹会得到的预测终点</div>
+            </div>
+
+            <div class="prediction-card">
+                <h4>🔬 终点[P]（目标≤0.020‰）</h4>
+                <div class="prediction-value" id="predPhosphorus">0.015‰</div>
+                <div class="prediction-confidence">置信区间: 0.013 - 0.017‰ (90%)</div>
+            </div>
+
+            <div class="prediction-card">
+                <h4>💧 终点[Mn]</h4>
+                <div class="prediction-value" id="predMn">0.090%</div>
+                <div class="prediction-confidence">置信区间: 0.085 - 0.095% (90%)</div>
+            </div>
+
+            <div class="prediction-card">
+                <h4>⚡ 终点[S]（目标≤0.015‰）</h4>
+                <div class="prediction-value" id="predS">0.011‰</div>
+                <div class="prediction-confidence">置信区间: 0.010 - 0.013‰ (90%)</div>
+            </div>
+
+            <div class="panel-title" style="margin-top: 20px;">关键过程指标</div>
+            
+            <div class="prediction-card">
+                <h4>🔥 渣中T.Fe（目标15-20%）</h4>
+                <div class="prediction-value" id="predTFe">18.3%</div>
+                <div class="prediction-confidence">炉渣氧化性: 良好</div>
+            </div>
+
+            <div class="prediction-card">
+                <h4>📊 碳氧积（目标1800-2200）</h4>
+                <div class="prediction-value" id="predCO">2014</div>
+                <div class="prediction-confidence">0.01%*PPm 脱碳过程稳定</div>
+            </div>
+
+            <div class="prediction-card">
+                <h4>🔄 预测再吹率</h4>
+                <div class="prediction-value" id="predReblow">1.2%</div>
+                <div class="prediction-confidence">终点命中概率: 95%</div>
+            </div>
+
+            <div class="panel-title" style="margin-top: 20px;">过程监控状态</div>
+            
+            <div style="background: #f5f5f7; border: 2px solid #d0d0d0; padding: 12px; margin-bottom: 10px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px;">
+                    <div>
+                        <span style="color: #606060;">烟气CO:</span>
+                        <strong id="monitorCO" style="color: #0066cc;">24.5%</strong>
+                    </div>
+                    <div>
+                        <span style="color: #606060;">烟气CO₂:</span>
+                        <strong id="monitorCO2" style="color: #0066cc;">16.2%</strong>
+                    </div>
+                    <div>
+                        <span style="color: #606060;">渣位高度:</span>
+                        <strong id="monitorSlag" style="color: #0066cc;">850mm</strong>
+                    </div>
+                    <div>
+                        <span style="color: #606060;">泡沫指数:</span>
+                        <strong id="monitorFoam" style="color: #ff8800;">3.2</strong>
+                    </div>
+                    <div>
+                        <span style="color: #606060;">底吹流量:</span>
+                        <strong id="monitorBottom" style="color: #0066cc;">82 Nm³/min</strong>
+                    </div>
+                    <div>
+                        <span style="color: #606060;">炉倾角:</span>
+                        <strong id="monitorAngle" style="color: #0066cc;">2.1°</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: rgba(0,170,68,0.1); border: 2px solid #00aa44; border-left: 4px solid #00aa44; padding: 10px; font-size: 11px; box-shadow: 0 2px 6px rgba(0,170,68,0.15);">
+                <strong style="color: #00aa44;">✓ 系统状态：</strong><span style="color: #303030;">正常运行</span><br>
+                <span style="color: #606060;">在线传感器: 18/20 | DCS连接: 正常</span>
+            </div>
+        </div>
+
+        <!-- 中央面板 -->
+        <div class="center-panel">
+            <div class="panel-title">炉次事件时间轴</div>
+            
+            <div class="replay-controls">
+                <button onclick="replayControl('backward')">◄◄</button>
+                <button onclick="replayControl('play')" id="playBtn">▶</button>
+                <button onclick="replayControl('forward')">►►</button>
+                <input type="range" class="replay-slider" id="replaySlider" min="0" max="100" value="70">
+                <span id="replayTime">12:35</span>
+            </div>
+
+            <div class="chart-container" style="height: 300px;">
+                <canvas id="heatMapChart"></canvas>
+            </div>
+
+            <div class="timeline" id="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-time">10:32</div>
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <strong>兑铁开始</strong><br>
+                        <span id="timelineIronInfo">铁水量: 150t, 温度: 1349.7°C, Si: 0.38%, Mn: 0.28%</span>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-time">10:35</div>
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <strong>吹氧开始</strong><br>
+                        初始枪位: 1800mm, 初始氧流量: 28000 Nm³/min
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-time">10:42</div>
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content sample">
+                        <strong>副枪采样</strong><br>
+                        C: 0.35%, 温度: 1520°C
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-time">10:48</div>
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <strong>造渣操作</strong><br>
+                        石灰: 2500kg, 白云石: 800kg, 萤石: 200kg
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-time">10:56</div>
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <strong>底吹启动</strong><br>
+                        底吹氩气流量: 80 Nm³/min，强化熔池搅拌
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-time">11:08</div>
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content alert">
+                        <strong>⚠️ 泡沫预警</strong><br>
+                        泡沫指数达到3.8，渣位升高，建议调整枪位或投入消泡剂
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-time">11:15</div>
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content alert">
+                        <strong>⚠️ 烟气分析异常</strong><br>
+                        CO浓度升高至28%，碳氧积偏离目标2150，脱碳速率偏快
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-time">11:28</div>
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <strong>控温操作</strong><br>
+                        喷洒冷却剂150kg，控制温升速率至+8°C/min
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-time">11:42</div>
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content" style="border-left-color: #00aa44; background: rgba(0,170,68,0.1); box-shadow: 0 2px 8px rgba(0,170,68,0.15);">
+                        <strong style="color: #00aa44;">✓ ML建议已执行</strong><br>
+                        氧流量降至 25000 Nm³/min，枪位提升至 1620mm，枪位角度微调至14°
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-time">11:55</div>
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <strong>合金预加</strong><br>
+                        锰铁: 350kg, 硅铁: 180kg（预备终点合金化）
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-time">12:05</div>
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content sample">
+                        <strong>副枪采样</strong><br>
+                        C: 0.08%, 温度: 1632°C
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-time">12:35</div>
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content" style="border-left-color: #ff8800; background: rgba(255,136,0,0.1); box-shadow: 0 2px 8px rgba(255,136,0,0.2);">
+                        <strong style="color: #ff8800;">当前位置</strong><br>
+                        预计还需 3-5 分钟达到终点
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧面板 -->
+        <div class="right-panel">
+            <div class="panel-title">控制建议（实时/人工提示）</div>
+            
+            <!-- 控制建议说明 -->
+            <div style="background: rgba(255,136,0,0.08); border: 2px solid #ff8800; border-left: 4px solid #ff8800; padding: 10px; margin-bottom: 15px; box-shadow: 0 2px 6px rgba(255,136,0,0.15); font-size: 11px;">
+                <strong style="color: #ff8800;">💡 控制建议类型：</strong><br>
+                <span style="color: #303030;">• 调枪位（枪位高度/角度优化）</span><br>
+                <span style="color: #303030;">• 调氧流（氧气流量调整）</span><br>
+                <span style="color: #303030;">• 提前或延后停氧（终点时机控制）</span><br>
+                <span style="color: #303030;">• 其他辅助操作（加料、底吹等）</span>
+            </div>
+            
+            <div class="suggestion-card" id="suggestion1">
+                <div class="suggestion-header">
+                    <span class="priority-badge priority-high">高优先级</span>
+                    <span style="font-size: 12px; color: #999;">2分钟前</span>
+                </div>
+                <div class="suggestion-action">
+                    🔹 调氧流：在 3 分钟后降低氧枪流量至 22000 Nm³/min
+                </div>
+                <div class="suggestion-effect">
+                    📊 预期效果: 优化终点[C]控制精度，降低偏差 0.008%<br>
+                    🎯 预测停吹[C]: 0.043% (目标≤0.05%)<br>
+                    ⚡ 风险等级: 低 | 置信度: 92%
+                </div>
+                <div class="confidence-bar">
+                    <div class="confidence-fill" style="width: 92%;"></div>
+                </div>
+                <details>
+                    <summary style="cursor: pointer; color: #0066cc; font-size: 11px;">主要驱动因子 ▼</summary>
+                    <div style="font-size: 10px; color: #606060; margin-top: 8px; padding-left: 10px; font-family: 'Consolas', monospace;">
+                        • 当前碳氧积: 2150 (目标范围: 1800-2200)<br>
+                        • 碳氧化速率: +0.015%/min (偏高)<br>
+                        • 入炉Si含量: 0.38% (影响脱碳速率)<br>
+                        • 熔池温度趋势: 稳定上升 (+8°C/min)<br>
+                        • 渣中T.Fe: 18.3% (氧化性良好)
+                    </div>
+                </details>
+                <div class="suggestion-buttons">
+                    <button class="btn-adopt" onclick="adoptSuggestion(1)">✓ 采纳</button>
+                    <button class="btn-adjust" onclick="adjustSuggestion(1)">⚙ 微调</button>
+                    <button class="btn-reject" onclick="rejectSuggestion(1)">✗ 拒绝</button>
+                </div>
+            </div>
+
+            <div class="suggestion-card" id="suggestion2">
+                <div class="suggestion-header">
+                    <span class="priority-badge priority-medium">中优先级</span>
+                    <span style="font-size: 12px; color: #999;">5分钟前</span>
+                </div>
+                <div class="suggestion-action">
+                    🔹 调枪位：提升氧枪枪位至 1650mm
+                </div>
+                <div class="suggestion-effect">
+                    📊 预期效果: 改善熔池搅拌，提高脱磷效率 8%<br>
+                    🎯 预测停吹[P]: 0.014‰ (目标≤0.020‰)<br>
+                    ⚡ 风险等级: 低 | 置信度: 85%
+                </div>
+                <div class="confidence-bar">
+                    <div class="confidence-fill" style="width: 85%;"></div>
+                </div>
+                <details>
+                    <summary style="cursor: pointer; color: #0066cc; font-size: 11px;">主要驱动因子 ▼</summary>
+                    <div style="font-size: 10px; color: #606060; margin-top: 8px; padding-left: 10px; font-family: 'Consolas', monospace;">
+                        • 当前[P]: 0.143‰ → 目标: ≤0.020‰<br>
+                        • 当前枪位: 1580mm (偏低)<br>
+                        • 脱磷速率: -0.008‰/min (可优化)<br>
+                        • 渣碱度: 3.2 (适宜脱磷)<br>
+                        • 顶压稳定: 0.62 MPa (安全范围)
+                    </div>
+                </details>
+                <div class="suggestion-buttons">
+                    <button class="btn-adopt" onclick="adoptSuggestion(2)">✓ 采纳</button>
+                    <button class="btn-adjust" onclick="adjustSuggestion(2)">⚙ 微调</button>
+                    <button class="btn-reject" onclick="rejectSuggestion(2)">✗ 拒绝</button>
+                </div>
+            </div>
+
+            <div class="suggestion-card" id="suggestion3">
+                <div class="suggestion-header">
+                    <span class="priority-badge priority-low">低优先级</span>
+                    <span style="font-size: 12px; color: #999;">8分钟前</span>
+                </div>
+                <div class="suggestion-action">
+                    🔹 辅助操作：补加石灰 500kg（维持渣况）
+                </div>
+                <div class="suggestion-effect">
+                    📊 预期效果: 维持渣碱度3.0-3.5，提升脱硫率<br>
+                    🎯 预测停吹[S]: 0.010‰ (目标≤0.015‰)<br>
+                    💰 经济效益: 降低脱硫剂成本约 ¥120/炉<br>
+                    ⚡ 风险等级: 极低 | 置信度: 78%
+                </div>
+                <div class="confidence-bar">
+                    <div class="confidence-fill" style="width: 78%;"></div>
+                </div>
+                <details>
+                    <summary style="cursor: pointer; color: #0066cc; font-size: 11px;">主要驱动因子 ▼</summary>
+                    <div style="font-size: 10px; color: #606060; margin-top: 8px; padding-left: 10px; font-family: 'Consolas', monospace;">
+                        • 入炉[S]: 0.008‰ (偏高)<br>
+                        • 当前渣碱度: 2.9 (逐渐下降)<br>
+                        • 渣中T.Fe: 18.3% (适中)<br>
+                        • 脱硫速率: -0.0008‰/min<br>
+                        • 历史数据: 该炉况补石灰500kg效果最优
+                    </div>
+                </details>
+                <div class="suggestion-buttons">
+                    <button class="btn-adopt" onclick="adoptSuggestion(3)">✓ 采纳</button>
+                    <button class="btn-adjust" onclick="adjustSuggestion(3)">⚙ 微调</button>
+                    <button class="btn-reject" onclick="rejectSuggestion(3)">✗ 拒绝</button>
+                </div>
+            </div>
+
+            <div class="suggestion-card" id="suggestion4">
+                <div class="suggestion-header">
+                    <span class="priority-badge priority-high">高优先级</span>
+                    <span style="font-size: 12px; color: #999;">刚刚</span>
+                </div>
+                <div class="suggestion-action">
+                    🔹 停氧时机：建议延后停氧 1.5 分钟（12:40停吹）
+                </div>
+                <div class="suggestion-effect">
+                    📊 预期效果: 提高终点温度命中率，降低再吹风险<br>
+                    🎯 预测终点温度: 1655°C (目标1640-1660°C)<br>
+                    🎯 预测终点[C]: 0.041% (目标≤0.05%)<br>
+                    ⚡ 风险等级: 低 | 置信度: 89%
+                </div>
+                <div class="confidence-bar">
+                    <div class="confidence-fill" style="width: 89%;"></div>
+                </div>
+                <details>
+                    <summary style="cursor: pointer; color: #0066cc; font-size: 11px;">主要驱动因子 ▼</summary>
+                    <div style="font-size: 10px; color: #606060; margin-top: 8px; padding-left: 10px; font-family: 'Consolas', monospace;">
+                        • 当前温度趋势: +8.2°C/min (略低)<br>
+                        • 当前[C]: 0.082% (脱碳速率正常)<br>
+                        • ETA分析: 提前停吹可能导致温度偏低<br>
+                        • 历史相似炉次: 延后1-2分钟效果最优<br>
+                        • 终点命中率预测: 提升至97.2%
+                    </div>
+                </details>
+                <div class="suggestion-buttons">
+                    <button class="btn-adopt" onclick="adoptSuggestion(4)">✓ 采纳</button>
+                    <button class="btn-adjust" onclick="adjustSuggestion(4)">⚙ 微调</button>
+                    <button class="btn-reject" onclick="rejectSuggestion(4)">✗ 拒绝</button>
+                </div>
+            </div>
+
+            <div class="suggestion-card" id="suggestion5">
+                <div class="suggestion-header">
+                    <span class="priority-badge priority-medium">中优先级</span>
+                    <span style="font-size: 12px; color: #999;">10分钟前</span>
+                </div>
+                <div class="suggestion-action">
+                    🔹 辅助操作：增大底吹流量至 95 Nm³/min
+                </div>
+                <div class="suggestion-effect">
+                    📊 预期效果: 强化熔池搅拌，加速均质化<br>
+                    🎯 改善脱磷/脱硫动力学条件<br>
+                    ⚡ 风险等级: 低 | 置信度: 81%
+                </div>
+                <div class="confidence-bar">
+                    <div class="confidence-fill" style="width: 81%;"></div>
+                </div>
+                <details>
+                    <summary style="cursor: pointer; color: #0066cc; font-size: 11px;">主要驱动因子 ▼</summary>
+                    <div style="font-size: 10px; color: #606060; margin-top: 8px; padding-left: 10px; font-family: 'Consolas', monospace;">
+                        • 当前底吹流量: 78 Nm³/min (偏低)<br>
+                        • 熔池温度分布不均: ΔT=25°C<br>
+                        • 渣金界面反应速率可优化<br>
+                        • 设备允许最大流量: 120 Nm³/min
+                    </div>
+                </details>
+                <div class="suggestion-buttons">
+                    <button class="btn-adopt" onclick="adoptSuggestion(5)">✓ 采纳</button>
+                    <button class="btn-adjust" onclick="adjustSuggestion(5)">⚙ 微调</button>
+                    <button class="btn-reject" onclick="rejectSuggestion(5)">✗ 拒绝</button>
+                </div>
+            </div>
+
+            <div class="suggestion-card" id="suggestion6" style="opacity: 0.7;">
+                <div class="suggestion-header">
+                    <span class="priority-badge priority-low">低优先级</span>
+                    <span style="font-size: 12px; color: #999;">12分钟前</span>
+                </div>
+                <div class="suggestion-action">
+                    🔹 辅助操作：调整炉倾角至 2.5° （优化出钢准备）
+                </div>
+                <div class="suggestion-effect">
+                    📊 预期效果: 优化渣钢分离，提前出钢准备<br>
+                    ⏱️ 可缩短出钢时间约 45秒<br>
+                    ⚡ 风险等级: 极低 | 置信度: 72%
+                </div>
+                <div class="confidence-bar">
+                    <div class="confidence-fill" style="width: 72%;"></div>
+                </div>
+                <details>
+                    <summary style="cursor: pointer; color: #0066cc; font-size: 11px;">主要驱动因子 ▼</summary>
+                    <div style="font-size: 10px; color: #606060; margin-top: 8px; padding-left: 10px; font-family: 'Consolas', monospace;">
+                        • 当前炉倾角: 2.0°<br>
+                        • 预计3-5分钟后达到终点<br>
+                        • 提前调整有利于快速出钢<br>
+                        • 历史优秀炉次平均倾角: 2.5°
+                    </div>
+                </details>
+                <div class="suggestion-buttons">
+                    <button class="btn-adopt" onclick="adoptSuggestion(6)">✓ 采纳</button>
+                    <button class="btn-adjust" onclick="adjustSuggestion(6)">⚙ 微调</button>
+                    <button class="btn-reject" onclick="rejectSuggestion(6)">✗ 拒绝</button>
+                </div>
+            </div>
+
+            <div class="suggestion-card" id="suggestion7" style="opacity: 0.7;">
+                <div class="suggestion-header">
+                    <span class="priority-badge priority-high">高优先级</span>
+                    <span style="font-size: 12px; color: #999;">刚刚</span>
+                </div>
+                <div class="suggestion-action">
+                    🔹 调枪位 + 辅助操作：降低枪位50mm + 投入消泡剂
+                </div>
+                <div class="suggestion-effect">
+                    📊 预期效果: 抑制泡沫生成，降低溢渣风险<br>
+                    🎯 目标泡沫指数: 2.5 (当前3.8)<br>
+                    ⚠️ 风险等级: 中 | 置信度: 88%
+                </div>
+                <div class="confidence-bar">
+                    <div class="confidence-fill" style="width: 88%;"></div>
+                </div>
+                <details>
+                    <summary style="cursor: pointer; color: #0066cc; font-size: 11px;">主要驱动因子 ▼</summary>
+                    <div style="font-size: 10px; color: #606060; margin-top: 8px; padding-left: 10px; font-family: 'Consolas', monospace;">
+                        • 泡沫指数: 3.8 (警戒线3.5)<br>
+                        • 渣位高度: 920mm (持续上升)<br>
+                        • 烟气CO含量: 26% (偏高，反应剧烈)<br>
+                        • 视觉检测: 泡沫溢出风险45%<br>
+                        • 建议: 降枪压泡 + 投消泡剂200kg
+                    </div>
+                </details>
+                <div class="suggestion-buttons">
+                    <button class="btn-adopt" onclick="adoptSuggestion(6)">✓ 采纳</button>
+                    <button class="btn-adjust" onclick="adjustSuggestion(6)">⚙ 微调</button>
+                    <button class="btn-reject" onclick="rejectSuggestion(6)">✗ 拒绝</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部 -->
+        <div class="footer">
+            <div class="model-info">
+                <div class="model-metric">
+                    <span class="label">模型版本</span>
+                    <span class="value" style="color: #ff8800;">v3.2.1 (二次模型)</span>
+                </div>
+                <div class="model-metric">
+                    <span class="label">当前炉型</span>
+                    <span class="value" id="footerFurnaceType">150t转炉</span>
+                </div>
+                <div class="model-metric">
+                    <span class="label">最近训练</span>
+                    <span class="value">2025-10-28</span>
+                </div>
+                <div class="model-metric">
+                    <span class="label">离线MAE</span>
+                    <span class="value" style="color: #4CAF50;">温度±3.2°C | C±0.006%</span>
+                </div>
+                <div class="model-metric">
+                    <span class="label">在线MAE (7天)</span>
+                    <span class="value" style="color: #4CAF50;" id="footerOnlineMAE">温度±4.1°C | 再吹率1.8%</span>
+                </div>
+                <div class="drift-indicator">
+                    <div class="drift-light"></div>
+                    <span style="font-size: 12px;">模型稳定</span>
+                </div>
+            </div>
+            <div class="footer-buttons">
+                <button class="btn-whatif" onclick="openWhatIf()">What-If 仿真</button>
+                <button class="btn-history" onclick="openHistory()">历史对比</button>
+                <button class="btn-retrain" onclick="openModelManagement()">模型管理</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- What-If 仿真弹窗 -->
+    <div class="modal" id="whatifModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>What-If 仿真分析</h2>
+                <span class="modal-close" onclick="closeModal('whatifModal')">&times;</span>
+            </div>
+            <div class="whatif-form">
+                <div class="form-group">
+                    <label>假设氧流量调整 (Nm³/min)</label>
+                    <input type="number" id="whatifOxygen" value="22000" step="100">
+                </div>
+                <div class="form-group">
+                    <label>假设枪位调整 (mm)</label>
+                    <input type="number" id="whatifLance" value="1650" step="10">
+                </div>
+                <div class="form-group">
+                    <label>预测时长 (分钟)</label>
+                    <input type="number" id="whatifDuration" value="5" step="1" min="1" max="20">
+                </div>
+                <button class="btn-adopt" onclick="runWhatIf()" style="width: 100%; padding: 12px;">运行仿真</button>
+            </div>
+            <div class="comparison-result" id="whatifResult" style="display: none;">
+                <h3 style="margin-bottom: 15px; color: #0066cc; text-transform: uppercase; letter-spacing: 1px; font-size: 15px;">仿真结果对比</h3>
+                <div class="comparison-item">
+                    <span>终点温度</span>
+                    <span class="value-change positive" id="whatifTempChange">+2.3°C</span>
+                </div>
+                <div class="comparison-item">
+                    <span>终点碳含量</span>
+                    <span class="value-change positive" id="whatifCarbonChange">-0.005%</span>
+                </div>
+                <div class="comparison-item">
+                    <span>能耗预估</span>
+                    <span class="value-change positive" id="whatifEnergyChange">-1.2%</span>
+                </div>
+                <div class="comparison-item">
+                    <span>吹炼时长</span>
+                    <span class="value-change negative" id="whatifTimeChange">+0.8分钟</span>
+                </div>
+                <div class="comparison-item">
+                    <span>命中率预估</span>
+                    <span class="value-change positive" id="whatifHitRate">+5.2%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 历史对比弹窗 -->
+    <div class="modal" id="historyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>历史炉次对比分析</h2>
+                <span class="modal-close" onclick="closeModal('historyModal')">&times;</span>
+            </div>
+            <div class="form-group">
+                <label>选择对比炉次</label>
+                <select id="historySelect">
+                    <option>20251101-005 (优秀炉次)</option>
+                    <option>20251101-003 (普通炉次)</option>
+                    <option>20251031-012 (问题炉次)</option>
+                </select>
+            </div>
+            <div class="chart-container" style="height: 400px; margin-top: 20px;">
+                <canvas id="comparisonChart"></canvas>
+            </div>
+            <div style="margin-top: 20px; padding: 15px; background: #f5f5f7; border: 2px solid #d0d0d0; border-left: 4px solid #0066cc; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <h4 style="margin-bottom: 10px; color: #0066cc; text-transform: uppercase; letter-spacing: 1px; font-size: 13px;">对比分析摘要</h4>
+                <ul style="font-size: 12px; color: #606060; line-height: 1.8; font-family: 'Consolas', monospace;">
+                    <li style="color: #00aa44;">✓ 本炉次氧流量控制更平稳，波动减少 15%</li>
+                    <li style="color: #00aa44;">✓ ML建议采纳率 78%，高于对比炉次的 45%</li>
+                    <li style="color: #00aa44;">✓ 终点命中率提升 12%，温度偏差缩小 5°C</li>
+                    <li style="color: #ff8800;">⚠ 吹炼时长略长 1.2分钟，可优化前期脱碳速率</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模型管理弹窗 -->
+    <div class="modal" id="modelModal">
+        <div class="modal-content" style="max-width: 1000px;">
+            <div class="modal-header">
+                <h2>模型训练与管理</h2>
+                <span class="modal-close" onclick="closeModal('modelModal')">&times;</span>
+            </div>
+            <div style="margin-bottom: 15px; padding: 10px; background: #f5f5f7; border: 2px solid #d0d0d0; border-left: 4px solid #0066cc; box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);">
+                <strong style="color: #0066cc;">当前炉型：</strong><span id="modalFurnaceType" style="color: #ff8800;">150t转炉</span> | 
+                <strong style="color: #0066cc;">模型适用范围：</strong><span style="color: #303030;">150t/250t通用模型</span>
+            </div>
+            <table class="model-version-table">
+                <thead>
+                    <tr>
+                        <th>版本</th>
+                        <th>训练日期</th>
+                        <th>数据范围</th>
+                        <th>MAE (温度)</th>
+                        <th>MAE (C)</th>
+                        <th>MAE (P)</th>
+                        <th>再吹率</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="current-version">v3.2.1 ★</td>
+                        <td>2025-10-28</td>
+                        <td>150t+250t (1850炉)</td>
+                        <td>±3.2°C</td>
+                        <td>±0.006%</td>
+                        <td>±1.8‰</td>
+                        <td>1.2%</td>
+                        <td><span style="color: #00aa44;">● 生产中</span></td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>v3.2.0</td>
+                        <td>2025-10-15</td>
+                        <td>150t+250t (1650炉)</td>
+                        <td>±3.5°C</td>
+                        <td>±0.007%</td>
+                        <td>±2.1‰</td>
+                        <td>1.5%</td>
+                        <td><span style="color: #808080;">已下线</span></td>
+                        <td><button style="padding: 5px 10px; font-size: 10px; background: rgba(0,102,204,0.1); border: 2px solid #0066cc; color: #0066cc; cursor: pointer;" onclick="alert('回滚至v3.2.0')">回滚</button></td>
+                    </tr>
+                    <tr>
+                        <td>v3.1.5</td>
+                        <td>2025-09-28</td>
+                        <td>150t单炉型 (820炉)</td>
+                        <td>±4.1°C</td>
+                        <td>±0.008%</td>
+                        <td>±2.5‰</td>
+                        <td>1.8%</td>
+                        <td><span style="color: #808080;">已归档</span></td>
+                        <td><button style="padding: 5px 10px; font-size: 10px; background: rgba(102,51,153,0.1); border: 2px solid #663399; color: #663399; cursor: pointer;" onclick="showModelDetails('v3.1.5')">详情</button></td>
+                    </tr>
+                    <tr>
+                        <td>v3.1.2</td>
+                        <td>2025-09-10</td>
+                        <td>250t单炉型 (730炉)</td>
+                        <td>±4.5°C</td>
+                        <td>±0.009%</td>
+                        <td>±2.8‰</td>
+                        <td>2.1%</td>
+                        <td><span style="color: #808080;">已归档</span></td>
+                        <td><button style="padding: 5px 10px; font-size: 10px; background: rgba(102,51,153,0.1); border: 2px solid #663399; color: #663399; cursor: pointer;" onclick="showModelDetails('v3.1.2')">详情</button></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div style="margin-top: 15px; padding: 12px; background: rgba(255,136,0,0.08); border: 2px solid #ff8800; border-left: 4px solid #ff8800; box-shadow: 0 2px 6px rgba(255,136,0,0.15);">
+                <strong style="color: #ff8800;">🔍 模型架构：</strong><span style="color: #303030;">XGBoost + LSTM混合模型</span><br>
+                <strong style="color: #ff8800;">📊 特征数：</strong><span style="color: #303030;">85个（包含过程参数、原料成分、历史统计特征）</span><br>
+                <strong style="color: #ff8800;">⚙️ 在线推理延迟：</strong><span style="color: #303030;">&lt;50ms</span>
+            </div>
+            <div style="margin-top: 20px; padding: 15px; background: rgba(0,170,68,0.08); border: 2px solid #00aa44; border-left: 4px solid #00aa44; box-shadow: 0 2px 6px rgba(0,170,68,0.15);">
+                <strong style="color: #00aa44;">📈 漂移检测报告（最近30天）</strong><br>
+                <div style="font-size: 12px; color: #606060; margin-top: 8px; font-family: 'Consolas', monospace;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                        <div>
+                            <strong style="color: #0066cc;">150t转炉：</strong><br>
+                            KS统计量: 0.08 (正常)<br>
+                            PSI: 0.03 (低漂移)<br>
+                            数据量: 425炉
+                        </div>
+                        <div>
+                            <strong style="color: #0066cc;">250t转炉：</strong><br>
+                            KS统计量: 0.07 (正常)<br>
+                            PSI: 0.04 (低漂移)<br>
+                            数据量: 382炉
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top: 15px; padding: 15px; background: rgba(0,102,204,0.08); border: 2px solid #0066cc; border-left: 4px solid #0066cc; box-shadow: 0 2px 6px rgba(0,102,204,0.15);">
+                <strong style="color: #0066cc;">📊 炉型性能对比（最近100炉）</strong><br>
+                <table style="width: 100%; margin-top: 10px; font-size: 12px; font-family: 'Consolas', monospace;">
+                    <tr style="border-bottom: 2px solid #d0d0d0;">
+                        <th style="text-align: left; padding: 8px; color: #606060;">指标</th>
+                        <th style="text-align: center; padding: 8px; color: #606060;">150t转炉</th>
+                        <th style="text-align: center; padding: 8px; color: #606060;">250t转炉</th>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; color: #303030;">温度命中率</td>
+                        <td style="text-align: center; color: #00aa44; font-weight: bold;">96.2%</td>
+                        <td style="text-align: center; color: #00aa44; font-weight: bold;">94.8%</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; color: #303030;">碳含量命中率</td>
+                        <td style="text-align: center; color: #00aa44; font-weight: bold;">93.5%</td>
+                        <td style="text-align: center; color: #00aa44; font-weight: bold;">91.2%</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; color: #303030;">平均再吹率</td>
+                        <td style="text-align: center; color: #303030;">1.8%</td>
+                        <td style="text-align: center; color: #303030;">1.2%</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; color: #303030;">平均吹炼时间</td>
+                        <td style="text-align: center; color: #303030;">16.2 分钟</td>
+                        <td style="text-align: center; color: #303030;">18.5 分钟</td>
+                    </tr>
+                </table>
+            </div>
+            <button class="btn-retrain" style="margin-top: 15px; width: 100%; padding: 12px;" onclick="triggerRetrain()">
+                触发模型重训练
+            </button>
+        </div>
+    </div>
+
+    <script src="js/secondary_app.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一次模型 - 转炉终点预测系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .primary-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        
+        .primary-header {
+            background: linear-gradient(135deg, #2a5298 0%, #1e3a5f 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .primary-header h1 {
+            margin: 0 0 10px 0;
+            font-size: 28px;
+        }
+        
+        .primary-header p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .nav-tab {
+            padding: 12px 24px;
+            background: white;
+            border: 2px solid #2a5298;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #2a5298;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .nav-tab.active {
+            background: #2a5298;
+            color: white;
+        }
+        
+        .nav-tab:hover {
+            background: #2a5298;
+            color: white;
+        }
+        
+        .input-section {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2a5298;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #2a5298;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .form-field {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-field label {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .form-field input,
+        .form-field select {
+            padding: 10px;
+            border: 2px solid #d0d0d0;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .form-field input:focus,
+        .form-field select:focus {
+            outline: none;
+            border-color: #2a5298;
+        }
+        
+        .predict-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #00aa44 0%, #008835 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 4px 12px rgba(0,170,68,0.3);
+            transition: all 0.3s;
+        }
+        
+        .predict-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,170,68,0.4);
+        }
+        
+        .results-section {
+            display: none;
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .result-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #2a5298;
+        }
+        
+        .result-card h3 {
+            margin: 0 0 15px 0;
+            color: #2a5298;
+            font-size: 16px;
+        }
+        
+        .result-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #00aa44;
+            margin-bottom: 10px;
+        }
+        
+        .result-range {
+            color: #666;
+            font-size: 13px;
+        }
+        
+        .result-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+        
+        .status-good {
+            background: rgba(0,170,68,0.15);
+            color: #00aa44;
+        }
+        
+        .status-warning {
+            background: rgba(255,136,0,0.15);
+            color: #ff8800;
+        }
+        
+        .status-danger {
+            background: rgba(204,0,0,0.15);
+            color: #cc0000;
+        }
+        
+        .suggestions-section {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .suggestion-item {
+            padding: 15px;
+            background: #f5f5f7;
+            border-left: 4px solid #2a5298;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        
+        .suggestion-item h4 {
+            margin: 0 0 10px 0;
+            color: #2a5298;
+            font-size: 15px;
+        }
+        
+        .suggestion-item p {
+            margin: 0;
+            color: #666;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        
+        .start-process-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #2a5298 0%, #1e3a5f 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(42,82,152,0.3);
+            transition: all 0.3s;
+        }
+        
+        .start-process-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(42,82,152,0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="primary-container">
+        <!-- 页面头部 -->
+        <div class="primary-header">
+            <h1>🎯 一次模型 - 转炉终点预测系统</h1>
+            <p>在转炉吹炼开始前，输入初始条件，预测终点参数并获取配料建议</p>
+        </div>
+        
+        <!-- 导航标签 -->
+        <div class="nav-tabs">
+            <a href="primary_model.html" class="nav-tab active">一次模型（吹炼前预测）</a>
+            <a href="secondary_model.html" class="nav-tab">二次模型（过程动态控制）</a>
+        </div>
+        
+        <!-- 输入参数部分 -->
+        <div class="input-section">
+            <div class="section-title">📋 基本信息与初始条件</div>
+            
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>工厂车间</label>
+                    <select id="factory">
+                        <option>A厂转炉车间</option>
+                        <option>B厂转炉车间</option>
+                    </select>
+                </div>
+                
+                <div class="form-field">
+                    <label>转炉规格</label>
+                    <select id="furnaceType">
+                        <option value="150">150t转炉</option>
+                        <option value="250">250t转炉</option>
+                    </select>
+                </div>
+                
+                <div class="form-field">
+                    <label>目标钢种</label>
+                    <select id="steelGrade">
+                        <option>Q235</option>
+                        <option>Q345</option>
+                        <option>HRB400</option>
+                        <option>SPHC</option>
+                    </select>
+                </div>
+                
+                <div class="form-field">
+                    <label>计划炉次号</label>
+                    <input type="text" id="heatNumber" value="20251102-001" />
+                </div>
+            </div>
+        </div>
+        
+        <div class="input-section">
+            <div class="section-title">🔥 铁水条件</div>
+            
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>铁水重量 (吨)</label>
+                    <input type="number" id="ironWeight" value="150" step="1" />
+                </div>
+                
+                <div class="form-field">
+                    <label>铁水温度 (摄氏度)</label>
+                    <input type="number" id="ironTemp" value="1350" step="1" />
+                </div>
+                
+                <div class="form-field">
+                    <label>铁水碳含量 (百分比)</label>
+                    <input type="number" id="inputC" value="4.20" step="0.01" />
+                </div>
+                
+                <div class="form-field">
+                    <label>铁水硅含量 (百分比)</label>
+                    <input type="number" id="inputSi" value="0.38" step="0.01" />
+                </div>
+                
+                <div class="form-field">
+                    <label>铁水锰含量 (百分比)</label>
+                    <input type="number" id="inputMn" value="0.28" step="0.01" />
+                </div>
+                
+                <div class="form-field">
+                    <label>铁水磷含量 (百分比)</label>
+                    <input type="number" id="inputP" value="0.143" step="0.001" />
+                </div>
+                
+                <div class="form-field">
+                    <label>铁水硫含量 (百分比)</label>
+                    <input type="number" id="inputS" value="0.008" step="0.001" />
+                </div>
+                
+                <div class="form-field">
+                    <label>铁水氧含量 (百万分之一)</label>
+                    <input type="number" id="inputO" value="200" step="10" />
+                </div>
+            </div>
+        </div>
+        
+        <div class="input-section">
+            <div class="section-title">⚒️ 废钢与冷料</div>
+            
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>废钢重量 (吨)</label>
+                    <input type="number" id="scrapWeight" value="30" step="0.5" />
+                </div>
+                
+                <div class="form-field">
+                    <label>废钢类型</label>
+                    <select id="scrapType">
+                        <option value="heavy">重型废钢</option>
+                        <option value="medium">中型废钢</option>
+                        <option value="light">轻型废钢</option>
+                        <option value="return">回收料</option>
+                    </select>
+                </div>
+                
+                <div class="form-field">
+                    <label>废钢含铁量 (百分比)</label>
+                    <input type="number" id="scrapFeContent" value="96.5" step="0.1" />
+                </div>
+                
+                <div class="form-field">
+                    <label>废钢回收料系数</label>
+                    <input type="number" id="scrapRecycleCoef" value="1.0" step="0.01" />
+                </div>
+                
+                <div class="form-field">
+                    <label>冷却剂重量 (千克)</label>
+                    <input type="number" id="coolantWeight" value="0" step="10" />
+                </div>
+                
+                <div class="form-field">
+                    <label>冷却剂类型</label>
+                    <select id="coolantType">
+                        <option value="none">无冷却剂</option>
+                        <option value="limestone">石灰石</option>
+                        <option value="ore">矿石</option>
+                        <option value="scrap">废钢</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="input-section">
+            <div class="section-title">🧱 造渣剂与合金加料</div>
+            
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>石灰加入量 (千克)</label>
+                    <input type="number" id="limeWeight" value="2500" step="10" />
+                </div>
+                
+                <div class="form-field">
+                    <label>石灰活性度 (毫升)</label>
+                    <input type="number" id="limeActivity" value="320" step="5" />
+                </div>
+                
+                <div class="form-field">
+                    <label>白云石加入量 (千克)</label>
+                    <input type="number" id="dolomiteWeight" value="800" step="10" />
+                </div>
+                
+                <div class="form-field">
+                    <label>轻烧白云石量 (千克)</label>
+                    <input type="number" id="lightDolomiteWeight" value="300" step="10" />
+                </div>
+                
+                <div class="form-field">
+                    <label>萤石加入量 (千克)</label>
+                    <input type="number" id="fluoriteWeight" value="200" step="10" />
+                </div>
+                
+                <div class="form-field">
+                    <label>铁矿石加入量 (千克)</label>
+                    <input type="number" id="oreWeight" value="500" step="10" />
+                </div>
+                
+                <div class="form-field">
+                    <label>铁矿石氧化铁含量 (百分比)</label>
+                    <input type="number" id="oreFeContent" value="65" step="0.5" />
+                </div>
+                
+                <div class="form-field">
+                    <label>造渣剂批次</label>
+                    <select id="slagAddTime">
+                        <option value="one">一次性加入</option>
+                        <option value="two">二批加入</option>
+                        <option value="three">三批加入</option>
+                        <option value="continuous">连续加入</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="input-section">
+            <div class="section-title">💨 吹氧工艺参数</div>
+            
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>氧气总量 (标准立方米)</label>
+                    <input type="number" id="oxygenTotal" value="8500" step="50" />
+                </div>
+                
+                <div class="form-field">
+                    <label>吹氧时间 (分钟)</label>
+                    <input type="number" id="blowTime" value="16.5" step="0.1" />
+                </div>
+                
+                <div class="form-field">
+                    <label>平均吹氧强度 (标准立方米每吨每分钟)</label>
+                    <input type="number" id="oxygenIntensity" value="186" step="1" />
+                </div>
+                
+                <div class="form-field">
+                    <label>初始氧气流量 (标准立方米每分钟)</label>
+                    <input type="number" id="oxygenFlowInit" value="28000" step="100" />
+                </div>
+                
+                <div class="form-field">
+                    <label>氧气纯度 (百分比)</label>
+                    <input type="number" id="oxygenPurity" value="99.5" step="0.1" />
+                </div>
+                
+                <div class="form-field">
+                    <label>初始枪位高度 (毫米)</label>
+                    <input type="number" id="lanceHeightInit" value="1800" step="10" />
+                </div>
+                
+                <div class="form-field">
+                    <label>枪位控制模式</label>
+                    <select id="lanceControl">
+                        <option value="manual">手动控制</option>
+                        <option value="auto">自动控制</option>
+                        <option value="program">程序控制</option>
+                    </select>
+                </div>
+                
+                <div class="form-field">
+                    <label>枪头类型</label>
+                    <select id="lanceType">
+                        <option value="4hole">四孔枪</option>
+                        <option value="5hole">五孔枪</option>
+                        <option value="6hole">六孔枪</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="input-section">
+            <div class="section-title">🌡️ 炉渣与渣系参数</div>
+            
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>目标炉渣碱度</label>
+                    <input type="number" id="targetBasicity" value="3.2" step="0.1" />
+                </div>
+                
+                <div class="form-field">
+                    <label>目标渣中氧化镁含量 (百分比)</label>
+                    <input type="number" id="targetSlagMgO" value="8.5" step="0.5" />
+                </div>
+                
+                <div class="form-field">
+                    <label>目标渣中三氧化二铁含量 (百分比)</label>
+                    <input type="number" id="targetSlagFeO" value="18" step="0.5" />
+                </div>
+                
+                <div class="form-field">
+                    <label>石灰矿石配比</label>
+                    <input type="number" id="limeOreRatio" value="5.0" step="0.1" />
+                </div>
+                
+                <div class="form-field">
+                    <label>造渣时序策略</label>
+                    <select id="slagStrategy">
+                        <option value="early">前期造渣</option>
+                        <option value="middle">中期造渣</option>
+                        <option value="late">后期造渣</option>
+                        <option value="balanced">均衡造渣</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="input-section">
+            <div class="section-title">🏭 设备与工况</div>
+            
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>转炉炉龄 (炉次)</label>
+                    <input type="number" id="furnaceAge" value="850" step="1" />
+                </div>
+                
+                <div class="form-field">
+                    <label>转炉容积 (立方米)</label>
+                    <input type="number" id="furnaceVolume" value="180" step="1" />
+                </div>
+                
+                <div class="form-field">
+                    <label>炉衬类型</label>
+                    <select id="liningType">
+                        <option value="mag">镁质炉衬</option>
+                        <option value="mag-c">镁碳质炉衬</option>
+                        <option value="mag-cr">镁铬质炉衬</option>
+                    </select>
+                </div>
+                
+                <div class="form-field">
+                    <label>炉衬剩余厚度 (毫米)</label>
+                    <input type="number" id="liningThickness" value="320" step="5" />
+                </div>
+                
+                <div class="form-field">
+                    <label>炉口吸热系数</label>
+                    <input type="number" id="heatLossCoef" value="1.0" step="0.01" />
+                </div>
+                
+                <div class="form-field">
+                    <label>底吹系统状态</label>
+                    <select id="bottomBlowStatus">
+                        <option value="normal">正常</option>
+                        <option value="partial">部分堵塞</option>
+                        <option value="blocked">堵塞</option>
+                    </select>
+                </div>
+                
+                <div class="form-field">
+                    <label>底吹元件数量 (个)</label>
+                    <input type="number" id="bottomPlugs" value="8" step="1" />
+                </div>
+                
+                <div class="form-field">
+                    <label>副枪检测次数</label>
+                    <input type="number" id="subLanceTests" value="1" step="1" />
+                </div>
+            </div>
+        </div>
+        
+        <div class="input-section">
+            <div class="section-title">🌍 环境与钢种信息</div>
+            
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>环境温度 (摄氏度)</label>
+                    <input type="number" id="ambientTemp" value="25" step="1" />
+                </div>
+                
+                <div class="form-field">
+                    <label>季节因素</label>
+                    <select id="season">
+                        <option value="spring">春季</option>
+                        <option value="summer">夏季</option>
+                        <option value="autumn">秋季</option>
+                        <option value="winter">冬季</option>
+                    </select>
+                </div>
+                
+                <div class="form-field">
+                    <label>班次</label>
+                    <select id="shift">
+                        <option value="day">白班</option>
+                        <option value="middle">中班</option>
+                        <option value="night">夜班</option>
+                    </select>
+                </div>
+                
+                <div class="form-field">
+                    <label>操作工级别</label>
+                    <select id="operatorLevel">
+                        <option value="senior">高级</option>
+                        <option value="intermediate">中级</option>
+                        <option value="junior">初级</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="input-section">
+            <div class="section-title">⚙️ 目标控制参数</div>
+            
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>目标温度 (°C)</label>
+                    <input type="number" id="targetTemp" value="1650" step="1" />
+                </div>
+                
+                <div class="form-field">
+                    <label>目标[C] (%)</label>
+                    <input type="number" id="targetC" value="0.045" step="0.001" />
+                </div>
+                
+                <div class="form-field">
+                    <label>目标[P] (‰)</label>
+                    <input type="number" id="targetP" value="0.020" step="0.001" />
+                </div>
+                
+                <div class="form-field">
+                    <label>目标[S] (‰)</label>
+                    <input type="number" id="targetS" value="0.015" step="0.001" />
+                </div>
+            </div>
+        </div>
+        
+        <button class="predict-btn" onclick="runPrediction()">🚀 开始预测计算</button>
+        
+        <!-- 预测结果部分 -->
+        <div class="results-section" id="resultsSection">
+            <div class="input-section">
+                <div class="section-title">📊 终点状态预测</div>
+                
+                <div class="results-grid">
+                    <div class="result-card">
+                        <h3>🌡️ 预测终点温度</h3>
+                        <div class="result-value" id="predTemp">1648摄氏度</div>
+                        <div class="result-range">目标范围: 1640-1660摄氏度</div>
+                        <div class="result-range">置信区间: 1644-1652摄氏度 (90%)</div>
+                        <span class="result-status status-good" id="tempStatus">✓ 符合要求</span>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>⚗️ 预测终点碳含量</h3>
+                        <div class="result-value" id="predC">0.043%</div>
+                        <div class="result-range">目标: ≤0.050%</div>
+                        <div class="result-range">置信区间: 0.038-0.048% (90%)</div>
+                        <span class="result-status status-good" id="cStatus">✓ 符合要求</span>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>🔬 预测终点磷含量</h3>
+                        <div class="result-value" id="predP">0.015%</div>
+                        <div class="result-range">目标: ≤0.020%</div>
+                        <div class="result-range">置信区间: 0.013-0.017% (90%)</div>
+                        <span class="result-status status-good" id="pStatus">✓ 符合要求</span>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>⚡ 预测终点硫含量</h3>
+                        <div class="result-value" id="predS">0.011%</div>
+                        <div class="result-range">目标: ≤0.015%</div>
+                        <div class="result-range">置信区间: 0.010-0.013% (90%)</div>
+                        <span class="result-status status-good" id="sStatus">✓ 符合要求</span>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>🔷 预测终点锰含量</h3>
+                        <div class="result-value" id="predMn">0.032%</div>
+                        <div class="result-range">入炉: 0.280%</div>
+                        <div class="result-range">脱除率: 88.6%</div>
+                        <span class="result-status status-good">正常范围</span>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>💎 预测终点硅含量</h3>
+                        <div class="result-value" id="predSi">0.005%</div>
+                        <div class="result-range">入炉: 0.380%</div>
+                        <div class="result-range">脱除率: 98.7%</div>
+                        <span class="result-status status-good">正常范围</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="input-section">
+                <div class="section-title">📈 反应效果指标</div>
+                
+                <div class="results-grid">
+                    <div class="result-card">
+                        <h3>🎯 脱碳率</h3>
+                        <div class="result-value" id="decarbon">98.98%</div>
+                        <div class="result-range">入炉碳: 4.20%</div>
+                        <div class="result-range">终点碳: 0.043%</div>
+                        <span class="result-status status-good">优秀</span>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>🎯 脱磷率</h3>
+                        <div class="result-value" id="dephosphor">89.51%</div>
+                        <div class="result-range">入炉磷: 0.143%</div>
+                        <div class="result-range">终点磷: 0.015%</div>
+                        <span class="result-status status-good">优秀</span>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>🎯 脱硅率</h3>
+                        <div class="result-value" id="desilicon">98.68%</div>
+                        <div class="result-range">入炉硅: 0.380%</div>
+                        <div class="result-range">终点硅: 0.005%</div>
+                        <span class="result-status status-good">优秀</span>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>🎯 脱硫率</h3>
+                        <div class="result-value" id="desulfur">-37.50%</div>
+                        <div class="result-range">入炉硫: 0.008%</div>
+                        <div class="result-range">终点硫: 0.011%</div>
+                        <span class="result-status status-warning">⚠ 硫增加</span>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>🎯 脱锰率</h3>
+                        <div class="result-value" id="demangan">88.57%</div>
+                        <div class="result-range">入炉锰: 0.280%</div>
+                        <div class="result-range">终点锰: 0.032%</div>
+                        <span class="result-status status-good">良好</span>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>⚡ 金属收得率</h3>
+                        <div class="result-value" id="metalYield">93.2%</div>
+                        <div class="result-range">入炉金属: 180.0吨</div>
+                        <div class="result-range">出钢量: 167.8吨</div>
+                        <span class="result-status status-good">正常</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="input-section">
+                <div class="section-title">🔥 炉渣性质预测</div>
+                
+                <div class="results-grid">
+                    <div class="result-card">
+                        <h3>⚖️ 预测炉渣碱度</h3>
+                        <div class="result-value" id="predBasicity">3.18</div>
+                        <div class="result-range">目标碱度: 3.0-3.5</div>
+                        <div class="result-range">氧化钙/二氧化硅</div>
+                        <span class="result-status status-good">✓ 理想范围</span>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>🔶 预测渣中氧化亚铁含量</h3>
+                        <div class="result-value" id="predSlagFeO">18.3%</div>
+                        <div class="result-range">目标范围: 15-20%</div>
+                        <div class="result-range">氧化能力强</div>
+                        <span class="result-status status-good">✓ 适宜</span>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>🧱 预测炉渣总量</h3>
+                        <div class="result-value" id="predSlagWeight">9.2吨</div>
+                        <div class="result-range">单位渣量: 54.8千克每吨钢</div>
+                        <div class="result-range">渣量适中</div>
+                        <span class="result-status status-good">正常</span>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>🔵 预测渣中氧化镁含量</h3>
+                        <div class="result-value" id="predSlagMgO">8.8%</div>
+                        <div class="result-range">目标范围: 7-10%</div>
+                        <div class="result-range">护炉效果好</div>
+                        <span class="result-status status-good">✓ 适宜</span>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>💧 预测渣中氧化钙含量</h3>
+                        <div class="result-value" id="predSlagCaO">46.5%</div>
+                        <div class="result-range">提供脱磷能力</div>
+                        <div class="result-range">碱度来源</div>
+                        <span class="result-status status-good">良好</span>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>⬜ 预测渣中二氧化硅含量</h3>
+                        <div class="result-value" id="predSlagSiO2">14.6%</div>
+                        <div class="result-range">来自铁水脱硅</div>
+                        <div class="result-range">形成渣相</div>
+                        <span class="result-status status-good">正常</span>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>📊 预测渣中三氧化二磷含量</h3>
+                        <div class="result-value" id="predSlagP2O5">2.85%</div>
+                        <div class="result-range">脱磷效果良好</div>
+                        <div class="result-range">磷进渣情况</div>
+                        <span class="result-status status-good">正常</span>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>🌀 预测渣流动性</h3>
+                        <div class="result-value" id="predSlagFlow">良好</div>
+                        <div class="result-range">萤石含量: 2.2%</div>
+                        <div class="result-range">助熔效果好</div>
+                        <span class="result-status status-good">✓ 理想</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="input-section">
+                <div class="section-title">⏱️ 时间与效率预测</div>
+                
+                <div class="results-grid">
+                    <div class="result-card">
+                        <h3>🕐 预计吹炼时间</h3>
+                        <div class="result-value" id="predTime">16.5分钟</div>
+                        <div class="result-range">历史平均: 16.2分钟</div>
+                        <div class="result-range">±1.2分钟</div>
+                        <span class="result-status status-good">正常范围</span>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>⚡ 吹炼强度</h3>
+                        <div class="result-value" id="blowIntensity">186</div>
+                        <div class="result-range">标准立方米每吨每分钟</div>
+                        <div class="result-range">高效操作</div>
+                        <span class="result-status status-good">正常</span>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>🌡️ 温度升高量</h3>
+                        <div class="result-value" id="tempRise">298摄氏度</div>
+                        <div class="result-range">入炉: 1350摄氏度</div>
+                        <div class="result-range">终点: 1648摄氏度</div>
+                        <span class="result-status status-good">正常</span>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>💨 氧气利用率</h3>
+                        <div class="result-value" id="oxygenUtil">92.3%</div>
+                        <div class="result-range">氧气总耗: 8500标准立方米</div>
+                        <div class="result-range">吨钢氧耗: 50.7标准立方米每吨</div>
+                        <span class="result-status status-good">高效</span>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>🎲 终点命中率</h3>
+                        <div class="result-value" id="hitRate">95%</div>
+                        <div class="result-range">温度命中: 96%</div>
+                        <div class="result-range">成分命中: 94%</div>
+                        <span class="result-status status-good">优秀</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="input-section">
+                <div class="section-title">📊 综合评价指标</div>
+                
+                <div class="results-grid">
+                    <div class="result-card">
+                        <h3>⭐ 终点质量评分</h3>
+                        <div class="result-value" id="qualityScore">92分</div>
+                        <div class="result-range">温度偏差: ±2摄氏度</div>
+                        <div class="result-range">成分达标率: 100%</div>
+                        <span class="result-status status-good">优秀</span>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>💰 经济性评分</h3>
+                        <div class="result-value" id="economyScore">88分</div>
+                        <div class="result-range">材料成本: 185元每吨</div>
+                        <div class="result-range">氧气成本: 42元每吨</div>
+                        <span class="result-status status-good">良好</span>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>⚙️ 工艺稳定性</h3>
+                        <div class="result-value" id="stability">稳定</div>
+                        <div class="result-range">操作波动小</div>
+                        <div class="result-range">过程可控</div>
+                        <span class="result-status status-good">✓ 稳定</span>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>🔥 脱磷效果评分</h3>
+                        <div class="result-value" id="dephosScore">90分</div>
+                        <div class="result-range">脱磷率: 89.5%</div>
+                        <div class="result-range">渣碱度适宜</div>
+                        <span class="result-status status-good">优秀</span>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>⚡ 能耗指标</h3>
+                        <div class="result-value" id="energy">标准</div>
+                        <div class="result-range">氧耗: 50.7标准立方米每吨</div>
+                        <div class="result-range">电耗: 12.5千瓦时每吨</div>
+                        <span class="result-status status-good">正常</span>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>🎯 综合评级</h3>
+                        <div class="result-value" id="overallRating">A级</div>
+                        <div class="result-range">质量、效率、成本综合</div>
+                        <div class="result-range">建议执行该方案</div>
+                        <span class="result-status status-good">✓ 优秀</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="suggestions-section">
+                <div class="section-title">💡 配料与控制建议</div>
+                
+                <div class="suggestion-item">
+                    <h4>🧱 造渣料配比建议</h4>
+                    <p>
+                        <strong>石灰：</strong>2500 kg（±100kg）<br>
+                        <strong>白云石：</strong>800 kg（±50kg）<br>
+                        <strong>萤石：</strong>200 kg（±30kg）<br>
+                        <strong>轻烧白云石：</strong>300 kg<br>
+                        <em>说明：根据入炉Si含量0.38%和P含量0.143‰，建议采用高碱度渣操作，目标渣碱度3.0-3.5</em>
+                    </p>
+                </div>
+                
+                <div class="suggestion-item">
+                    <h4>💨 初始吹氧策略</h4>
+                    <p>
+                        <strong>初始枪位：</strong>1800 mm<br>
+                        <strong>初始氧流量：</strong>28000 Nm³/min<br>
+                        <strong>供氧强度：</strong>186 Nm³/(t·min)<br>
+                        <strong>枪位角度：</strong>15°<br>
+                        <em>说明：采用高枪位起吹，避免早期喷溅，待熔池稳定后逐步降枪</em>
+                    </p>
+                </div>
+                
+                <div class="suggestion-item">
+                    <h4>🔥 温度控制策略</h4>
+                    <p>
+                        <strong>预计升温速率：</strong>8-10°C/min<br>
+                        <strong>冷却剂用量：</strong>约150 kg（视实际情况调整）<br>
+                        <strong>关键节点：</strong>吹炼中期（8-10分钟）进行副枪检测，及时调整控温策略<br>
+                        <em>说明：本炉次铁水温度1350°C，偏低，需要控制冷却剂用量</em>
+                    </p>
+                </div>
+                
+                <div class="suggestion-item">
+                    <h4>⚙️ 底吹搅拌建议</h4>
+                    <p>
+                        <strong>启动时机：</strong>吹炼开始后5-8分钟<br>
+                        <strong>底吹流量：</strong>80-90 Nm³/min<br>
+                        <strong>搅拌强度：</strong>中等强度，避免过度泡沫<br>
+                        <em>说明：底吹可改善熔池均匀性，提高脱磷脱硫效率</em>
+                    </p>
+                </div>
+                
+                <div class="suggestion-item">
+                    <h4>📈 关键指标预测</h4>
+                    <p>
+                        <strong>预测碳氧积：</strong>2014（目标范围：1800-2200）✓<br>
+                        <strong>预测渣中T.Fe：</strong>18.3%（目标范围：15-20%）✓<br>
+                        <strong>预测渣碱度：</strong>3.2（适宜脱磷）✓<br>
+                        <strong>总氧耗：</strong>约8500 Nm³<br>
+                        <em>说明：各项指标预测均在正常范围内，建议按计划执行</em>
+                    </p>
+                </div>
+            </div>
+            
+            <button class="start-process-btn" onclick="startProcess()">
+                ▶️ 确认方案，启动吹炼过程（进入二次模型）
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        function runPrediction() {
+            // 获取输入参数
+            const furnaceType = document.getElementById('furnaceType').value;
+            const ironTemp = parseFloat(document.getElementById('ironTemp').value);
+            const inputSi = parseFloat(document.getElementById('inputSi').value);
+            const inputP = parseFloat(document.getElementById('inputP').value);
+            const targetTemp = parseFloat(document.getElementById('targetTemp').value);
+            const targetC = parseFloat(document.getElementById('targetC').value);
+            
+            // 模拟预测计算（实际应调用后端API）
+            setTimeout(() => {
+                // 生成预测结果（添加一些基于输入的变化）
+                const tempOffset = (ironTemp - 1350) * 0.5;
+                const predTemp = targetTemp - 2 + tempOffset + (Math.random() - 0.5) * 4;
+                
+                const cOffset = inputSi * 0.01;
+                const predC = targetC - 0.002 + cOffset + (Math.random() - 0.5) * 0.005;
+                
+                const pOffset = inputP * 0.05;
+                const predP = inputP * 0.10 + pOffset + (Math.random() - 0.5) * 0.002;
+                
+                const predTime = furnaceType === '150' ? 16.5 : 18.5;
+                
+                // 更新显示
+                document.getElementById('predTemp').textContent = predTemp.toFixed(0) + '°C';
+                document.getElementById('predC').textContent = predC.toFixed(3) + '%';
+                document.getElementById('predP').textContent = predP.toFixed(3) + '‰';
+                document.getElementById('predS').textContent = '0.011‰';
+                document.getElementById('predTime').textContent = predTime.toFixed(1) + ' 分钟';
+                
+                // 判断状态
+                updateStatus('tempStatus', predTemp, targetTemp - 10, targetTemp + 10);
+                updateStatus('cStatus', predC, 0, targetC * 1.1);
+                updateStatus('pStatus', predP, 0, 0.020);
+                updateStatus('sStatus', 0.011, 0, 0.015);
+                
+                // 显示结果区域
+                document.getElementById('resultsSection').style.display = 'block';
+                document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+                
+                // 显示通知
+                showNotification('预测完成', '一次模型预测计算已完成，请查看结果和建议', 'success');
+            }, 1500);
+            
+            showNotification('正在计算', '一次模型预测中，请稍候...', 'info');
+        }
+        
+        function updateStatus(elementId, value, min, max) {
+            const element = document.getElementById(elementId);
+            if (value >= min && value <= max) {
+                element.className = 'result-status status-good';
+                element.textContent = '✓ 符合要求';
+            } else if (value < min || value > max * 1.1) {
+                element.className = 'result-status status-danger';
+                element.textContent = '✗ 偏离目标';
+            } else {
+                element.className = 'result-status status-warning';
+                element.textContent = '⚠ 需要关注';
+            }
+        }
+        
+        function startProcess() {
+            if (confirm('确认启动吹炼过程？\n\n确认后将进入二次模型实时控制界面，开始过程监控和动态预测。')) {
+                // 保存参数到sessionStorage
+                const params = {
+                    furnaceType: document.getElementById('furnaceType').value,
+                    ironTemp: document.getElementById('ironTemp').value,
+                    inputSi: document.getElementById('inputSi').value,
+                    inputMn: document.getElementById('inputMn').value,
+                    inputP: document.getElementById('inputP').value,
+                    inputS: document.getElementById('inputS').value,
+                    heatNumber: document.getElementById('heatNumber').value
+                };
+                sessionStorage.setItem('primaryModelParams', JSON.stringify(params));
+                
+                // 跳转到二次模型页面
+                window.location.href = 'secondary_model.html';
+            }
+        }
+        
+        function showNotification(title, message, type) {
+            alert(title + '\n\n' + message);
+        }
+    </script>
+</body>
+</html>
+
