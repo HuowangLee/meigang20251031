@@ -855,11 +855,11 @@
             
             <!-- 控制建议说明 -->
             <div style="background: rgba(255,136,0,0.08); border: 2px solid #ff8800; border-left: 4px solid #ff8800; padding: 10px; margin-bottom: 15px; box-shadow: 0 2px 6px rgba(255,136,0,0.15); font-size: 11px;">
-                <strong style="color: #ff8800;">💡 控制建议类型：</strong><br>
-                <span style="color: #303030;">• 调枪位（枪位高度/角度优化）</span><br>
-                <span style="color: #303030;">• 调氧流（氧气流量调整）</span><br>
-                <span style="color: #303030;">• 提前或延后停氧（终点时机控制）</span><br>
-                <span style="color: #303030;">• 其他辅助操作（加料、底吹等）</span>
+                <strong style="color: #ff8800;">💡 AI多变量协同控制策略：</strong><br>
+                <span style="color: #303030;">• <strong>多参数联动</strong>：每项建议控制3-5个工艺参数，实现整体优化</span><br>
+                <span style="color: #303030;">• <strong>物理+化学协同</strong>：兼顾热力学条件与动力学过程</span><br>
+                <span style="color: #303030;">• <strong>目标导向</strong>：针对终点质量、效率、经济性的综合决策</span><br>
+                <span style="color: #303030;">• <strong>风险平衡</strong>：在优化效果与操作风险间智能权衡</span>
             </div>
             
             <div class="suggestion-card" id="suggestion1">
@@ -868,24 +868,38 @@
                     <span style="font-size: 12px; color: #999;">2分钟前</span>
                 </div>
                 <div class="suggestion-action">
-                    🔹 调氧流：在 3 分钟后降低氧枪流量至 22000 Nm³/min
+                    🔹 多参数协同控制：氧流量 + 枪位 + 底吹流量<br>
+                    <div style="margin-top: 8px; padding-left: 15px; font-size: 11px; color: #303030; line-height: 1.8;">
+                        ① 降低氧枪流量至 <strong style="color: #0066cc;">22000 Nm³/min</strong>（-18%）<br>
+                        ② 提升枪位高度至 <strong style="color: #0066cc;">1650 mm</strong>（+70mm）<br>
+                        ③ 增大底吹流量至 <strong style="color: #0066cc;">95 Nm³/min</strong>（+16%）
+                    </div>
                 </div>
                 <div class="suggestion-effect">
-                    📊 预期效果: 优化终点[C]控制精度，降低偏差 0.008%<br>
-                    🎯 预测停吹[C]: 0.043% (目标≤0.05%)<br>
-                    ⚡ 风险等级: 低 | 置信度: 92%
+                    📊 协同效果: 优化脱碳速率，提高终点[C]控制精度<br>
+                    🎯 预测停吹[C]: 0.041% (目标≤0.05%，精度提升15%)<br>
+                    🎯 预测终点温度: 1652°C (目标1640-1660°C，命中率提升8%)<br>
+                    💡 智能均衡: 减氧+提枪降低脱碳速率，增大底吹强化搅拌均匀性<br>
+                    ⚡ 风险等级: 低 | 置信度: 94%
                 </div>
                 <div class="confidence-bar">
-                    <div class="confidence-fill" style="width: 92%;"></div>
+                    <div class="confidence-fill" style="width: 94%;"></div>
                 </div>
                 <details>
-                    <summary style="cursor: pointer; color: #0066cc; font-size: 11px;">主要驱动因子 ▼</summary>
+                    <summary style="cursor: pointer; color: #0066cc; font-size: 11px;">主要驱动因子与协同原理 ▼</summary>
                     <div style="font-size: 10px; color: #606060; margin-top: 8px; padding-left: 10px; font-family: 'Consolas', monospace;">
+                        <strong style="color: #ff8800;">驱动因子：</strong><br>
                         • 当前碳氧积: 2150 (目标范围: 1800-2200)<br>
-                        • 碳氧化速率: +0.015%/min (偏高)<br>
-                        • 入炉Si含量: 0.38% (影响脱碳速率)<br>
+                        • 碳氧化速率: +0.015%/min (偏高，需降速)<br>
                         • 熔池温度趋势: 稳定上升 (+8°C/min)<br>
-                        • 渣中T.Fe: 18.3% (氧化性良好)
+                        • 渣中T.Fe: 18.3% (氧化性良好)<br>
+                        • 熔池搅拌均匀性: 可优化 (ΔT=25°C)<br><br>
+                        
+                        <strong style="color: #0066cc;">协同控制原理：</strong><br>
+                        • 减氧+提枪: 降低氧射流冲击强度，减缓脱碳反应速率<br>
+                        • 提枪: 扩大氧射流覆盖面积，提高熔池上部均匀性<br>
+                        • 增底吹: 强化底部搅拌，补偿顶枪降速的均质化损失<br>
+                        • 三参数联动: 在降速的同时保证成分均匀，避免局部过氧化
                     </div>
                 </details>
                 <div class="suggestion-buttons">
@@ -901,24 +915,39 @@
                     <span style="font-size: 12px; color: #999;">5分钟前</span>
                 </div>
                 <div class="suggestion-action">
-                    🔹 调枪位：提升氧枪枪位至 1650mm
+                    🔹 脱磷脱硫优化组合：造渣 + 枪位 + 温度控制<br>
+                    <div style="margin-top: 8px; padding-left: 15px; font-size: 11px; color: #303030; line-height: 1.8;">
+                        ① 补加石灰 <strong style="color: #0066cc;">500 kg</strong> + 白云石 <strong style="color: #0066cc;">150 kg</strong>（提高渣碱度至3.5）<br>
+                        ② 提升氧枪枪位至 <strong style="color: #0066cc;">1650 mm</strong>（+70mm，改善搅拌）<br>
+                        ③ 维持温度 <strong style="color: #0066cc;">1630-1650°C</strong>（控温喷冷却剂100kg）<br>
+                        ④ 调整炉倾角至 <strong style="color: #0066cc;">2.3°</strong>（优化渣金界面）
+                    </div>
                 </div>
                 <div class="suggestion-effect">
-                    📊 预期效果: 改善熔池搅拌，提高脱磷效率 8%<br>
-                    🎯 预测停吹[P]: 0.014‰ (目标≤0.020‰)<br>
-                    ⚡ 风险等级: 低 | 置信度: 85%
+                    📊 协同效果: 强化脱磷脱硫反应动力学条件<br>
+                    🎯 预测终点[P]: 0.013‰ (目标≤0.020‰，脱磷率提升12%)<br>
+                    🎯 预测终点[S]: 0.009‰ (目标≤0.015‰，脱硫率提升18%)<br>
+                    💡 智能均衡: 高碱度+适宜温度+强搅拌=最优脱P脱S条件<br>
+                    ⚡ 风险等级: 低 | 置信度: 88%
                 </div>
                 <div class="confidence-bar">
-                    <div class="confidence-fill" style="width: 85%;"></div>
+                    <div class="confidence-fill" style="width: 88%;"></div>
                 </div>
                 <details>
-                    <summary style="cursor: pointer; color: #0066cc; font-size: 11px;">主要驱动因子 ▼</summary>
+                    <summary style="cursor: pointer; color: #0066cc; font-size: 11px;">主要驱动因子与协同原理 ▼</summary>
                     <div style="font-size: 10px; color: #606060; margin-top: 8px; padding-left: 10px; font-family: 'Consolas', monospace;">
-                        • 当前[P]: 0.143‰ → 目标: ≤0.020‰<br>
-                        • 当前枪位: 1580mm (偏低)<br>
-                        • 脱磷速率: -0.008‰/min (可优化)<br>
-                        • 渣碱度: 3.2 (适宜脱磷)<br>
-                        • 顶压稳定: 0.62 MPa (安全范围)
+                        <strong style="color: #ff8800;">驱动因子：</strong><br>
+                        • 当前[P]: 0.143‰ → 目标: ≤0.020‰（需强化脱磷）<br>
+                        • 当前[S]: 0.008‰ (可同步优化脱硫)<br>
+                        • 当前渣碱度: 3.0 (偏低，需提高至3.5以上)<br>
+                        • 当前枪位: 1580mm (偏低，搅拌不足)<br>
+                        • 熔池温度: 1632°C (适宜脱P脱S区间)<br><br>
+                        
+                        <strong style="color: #0066cc;">协同控制原理：</strong><br>
+                        • 补石灰+白云石: 提高渣碱度，增强渣相P₂O₅稳定性<br>
+                        • 提枪+调倾角: 改善熔池搅拌，加速渣金界面传质<br>
+                        • 控温冷却: 维持最优脱P温度窗口（1630-1650°C）<br>
+                        • 四参数联动: 同时满足热力学（碱度、温度）和动力学（搅拌）条件
                     </div>
                 </details>
                 <div class="suggestion-buttons">
@@ -930,29 +959,44 @@
 
             <div class="suggestion-card" id="suggestion3">
                 <div class="suggestion-header">
-                    <span class="priority-badge priority-low">低优先级</span>
+                    <span class="priority-badge priority-medium">中优先级</span>
                     <span style="font-size: 12px; color: #999;">8分钟前</span>
                 </div>
                 <div class="suggestion-action">
-                    🔹 辅助操作：补加石灰 500kg（维持渣况）
+                    🔹 渣况优化套装：造渣 + 枪位角度 + 底吹模式<br>
+                    <div style="margin-top: 8px; padding-left: 15px; font-size: 11px; color: #303030; line-height: 1.8;">
+                        ① 补加石灰 <strong style="color: #0066cc;">500 kg</strong> + 萤石 <strong style="color: #0066cc;">80 kg</strong>（维持碱度+降低粘度）<br>
+                        ② 微调枪位角度至 <strong style="color: #0066cc;">15.5°</strong>（优化渣面冲击）<br>
+                        ③ 底吹切换脉冲模式 <strong style="color: #0066cc;">85-110 Nm³/min</strong> 交替（强化渣金混合）<br>
+                        ④ 降低氧流量 <strong style="color: #0066cc;">500 Nm³/min</strong> 持续1分钟（避免过氧化）
+                    </div>
                 </div>
                 <div class="suggestion-effect">
-                    📊 预期效果: 维持渣碱度3.0-3.5，提升脱硫率<br>
-                    🎯 预测停吹[S]: 0.010‰ (目标≤0.015‰)<br>
-                    💰 经济效益: 降低脱硫剂成本约 ¥120/炉<br>
-                    ⚡ 风险等级: 极低 | 置信度: 78%
+                    📊 协同效果: 全面优化炉渣流动性与反应活性<br>
+                    🎯 预测渣碱度稳定在: 3.2-3.4 (最优区间)<br>
+                    🎯 预测渣中T.Fe降至: 16.8% (降低1.5%，减少铁损)<br>
+                    🎯 预测脱硫率提升: 22% (终点[S]降至0.008‰)<br>
+                    💰 经济效益: 单炉节省铁损¥280 + 脱硫剂¥120 = ¥400/炉<br>
+                    ⚡ 风险等级: 极低 | 置信度: 85%
                 </div>
                 <div class="confidence-bar">
-                    <div class="confidence-fill" style="width: 78%;"></div>
+                    <div class="confidence-fill" style="width: 85%;"></div>
                 </div>
                 <details>
-                    <summary style="cursor: pointer; color: #0066cc; font-size: 11px;">主要驱动因子 ▼</summary>
+                    <summary style="cursor: pointer; color: #0066cc; font-size: 11px;">主要驱动因子与协同原理 ▼</summary>
                     <div style="font-size: 10px; color: #606060; margin-top: 8px; padding-left: 10px; font-family: 'Consolas', monospace;">
-                        • 入炉[S]: 0.008‰ (偏高)<br>
-                        • 当前渣碱度: 2.9 (逐渐下降)<br>
-                        • 渣中T.Fe: 18.3% (适中)<br>
-                        • 脱硫速率: -0.0008‰/min<br>
-                        • 历史数据: 该炉况补石灰500kg效果最优
+                        <strong style="color: #ff8800;">驱动因子：</strong><br>
+                        • 入炉[S]: 0.008‰ (偏高，需强化脱硫)<br>
+                        • 当前渣碱度: 2.9 (逐渐下降，需补充)<br>
+                        • 渣中T.Fe: 18.3% (偏高，铁损较大)<br>
+                        • 炉渣流动性: 中等 (粘度可优化)<br>
+                        • 渣金界面混合度: 68% (有提升空间)<br><br>
+                        
+                        <strong style="color: #0066cc;">协同控制原理：</strong><br>
+                        • 石灰+萤石: 提高碱度的同时降低炉渣粘度，增强流动性<br>
+                        • 调枪角+脉冲底吹: 优化渣金界面波动，强化传质效率<br>
+                        • 短时降氧: 降低渣相氧化性，减少FeO生成和铁损<br>
+                        • 四参数联动: 造渣配方+枪位控制+底吹模式+氧气节奏
                     </div>
                 </details>
                 <div class="suggestion-buttons">
@@ -968,25 +1012,41 @@
                     <span style="font-size: 12px; color: #999;">刚刚</span>
                 </div>
                 <div class="suggestion-action">
-                    🔹 停氧时机：建议延后停氧 1.5 分钟（12:40停吹）
+                    🔹 终点冲刺策略：停氧时机 + 温控 + 合金化准备<br>
+                    <div style="margin-top: 8px; padding-left: 15px; font-size: 11px; color: #303030; line-height: 1.8;">
+                        ① 延后停氧时间至 <strong style="color: #0066cc;">12:40</strong>（+1.5分钟）<br>
+                        ② 末期降低氧流至 <strong style="color: #0066cc;">20000 Nm³/min</strong>（缓吹终点）<br>
+                        ③ 提前准备冷却剂 <strong style="color: #0066cc;">200 kg</strong> 待命（终点控温）<br>
+                        ④ 枪位终点模式调至 <strong style="color: #0066cc;">1720 mm</strong>（避免喷溅）<br>
+                        ⑤ 预加锰铁 <strong style="color: #0066cc;">350 kg</strong> + 硅铁 <strong style="color: #0066cc;">180 kg</strong>（加速合金化）
+                    </div>
                 </div>
                 <div class="suggestion-effect">
-                    📊 预期效果: 提高终点温度命中率，降低再吹风险<br>
-                    🎯 预测终点温度: 1655°C (目标1640-1660°C)<br>
-                    🎯 预测终点[C]: 0.041% (目标≤0.05%)<br>
-                    ⚡ 风险等级: 低 | 置信度: 89%
+                    📊 协同效果: 精准命中终点，快速进入合金化阶段<br>
+                    🎯 预测终点温度: 1654°C (目标1640-1660°C，命中率97.5%)<br>
+                    🎯 预测终点[C]: 0.039% (目标≤0.05%，精度提升18%)<br>
+                    🎯 预测终点[Mn]: 0.095% (合金化后达标)<br>
+                    ⏱️ 出钢准备时间缩短: 约50秒<br>
+                    ⚡ 风险等级: 低 | 置信度: 92%
                 </div>
                 <div class="confidence-bar">
-                    <div class="confidence-fill" style="width: 89%;"></div>
+                    <div class="confidence-fill" style="width: 92%;"></div>
                 </div>
                 <details>
-                    <summary style="cursor: pointer; color: #0066cc; font-size: 11px;">主要驱动因子 ▼</summary>
+                    <summary style="cursor: pointer; color: #0066cc; font-size: 11px;">主要驱动因子与协同原理 ▼</summary>
                     <div style="font-size: 10px; color: #606060; margin-top: 8px; padding-left: 10px; font-family: 'Consolas', monospace;">
-                        • 当前温度趋势: +8.2°C/min (略低)<br>
-                        • 当前[C]: 0.082% (脱碳速率正常)<br>
-                        • ETA分析: 提前停吹可能导致温度偏低<br>
-                        • 历史相似炉次: 延后1-2分钟效果最优<br>
-                        • 终点命中率预测: 提升至97.2%
+                        <strong style="color: #ff8800;">驱动因子：</strong><br>
+                        • 当前温度趋势: +8.2°C/min (略低于目标+9°C/min)<br>
+                        • 当前[C]: 0.082% (脱碳速率0.012%/min，稳定)<br>
+                        • ETA分析: 提前停吹导致温度偏低风险35%<br>
+                        • 历史相似炉次: 延后1-2分钟命中率提升12%<br>
+                        • 合金化时间窗口: 越早准备越好<br><br>
+                        
+                        <strong style="color: #0066cc;">协同控制原理：</strong><br>
+                        • 延停氧+末期降流: 补足温升的同时避免过吹<br>
+                        • 提枪+冷却剂待命: 防喷溅+终点精确控温<br>
+                        • 预加合金: 利用余热加速溶解，缩短出钢时间<br>
+                        • 五参数联动: 时机+流量+枪位+温控+合金化一体化决策
                     </div>
                 </details>
                 <div class="suggestion-buttons">
@@ -1002,23 +1062,41 @@
                     <span style="font-size: 12px; color: #999;">10分钟前</span>
                 </div>
                 <div class="suggestion-action">
-                    🔹 辅助操作：增大底吹流量至 95 Nm³/min
+                    🔹 均质化强化方案：底吹 + 枪位动态 + 炉倾角<br>
+                    <div style="margin-top: 8px; padding-left: 15px; font-size: 11px; color: #303030; line-height: 1.8;">
+                        ① 增大底吹流量至 <strong style="color: #0066cc;">95 Nm³/min</strong>（+22%）<br>
+                        ② 枪位动态调节 <strong style="color: #0066cc;">1580-1650mm</strong> 循环（30秒/周期）<br>
+                        ③ 调整炉倾角至 <strong style="color: #0066cc;">2.5°</strong>（优化熔池流动）<br>
+                        ④ 顶吹氧流量微降 <strong style="color: #0066cc;">-800 Nm³/min</strong>（平衡搅拌强度）
+                    </div>
                 </div>
                 <div class="suggestion-effect">
-                    📊 预期效果: 强化熔池搅拌，加速均质化<br>
-                    🎯 改善脱磷/脱硫动力学条件<br>
-                    ⚡ 风险等级: 低 | 置信度: 81%
+                    📊 协同效果: 全面强化熔池三维搅拌与均质化<br>
+                    🎯 熔池温度均匀性提升: ΔT从25°C降至15°C (提升40%)<br>
+                    🎯 成分分布标准差降低: 35% (C、Mn、P均匀性显著改善)<br>
+                    🎯 脱P脱S效率提升: 15% (界面反应速率加快)<br>
+                    💡 智能均衡: 底吹+动态枪位创造立体搅拌场，倾角优化整体流动<br>
+                    ⚡ 风险等级: 低 | 置信度: 87%
                 </div>
                 <div class="confidence-bar">
-                    <div class="confidence-fill" style="width: 81%;"></div>
+                    <div class="confidence-fill" style="width: 87%;"></div>
                 </div>
                 <details>
-                    <summary style="cursor: pointer; color: #0066cc; font-size: 11px;">主要驱动因子 ▼</summary>
+                    <summary style="cursor: pointer; color: #0066cc; font-size: 11px;">主要驱动因子与协同原理 ▼</summary>
                     <div style="font-size: 10px; color: #606060; margin-top: 8px; padding-left: 10px; font-family: 'Consolas', monospace;">
-                        • 当前底吹流量: 78 Nm³/min (偏低)<br>
-                        • 熔池温度分布不均: ΔT=25°C<br>
-                        • 渣金界面反应速率可优化<br>
-                        • 设备允许最大流量: 120 Nm³/min
+                        <strong style="color: #ff8800;">驱动因子：</strong><br>
+                        • 当前底吹流量: 82 Nm³/min (偏低，搅拌不足)<br>
+                        • 熔池温度分布不均: ΔT=25°C (存在死区)<br>
+                        • 渣金界面传质系数: 0.68 (可提升至0.85)<br>
+                        • 副枪检测成分波动: σ[C]=0.012% (偏大)<br>
+                        • 炉倾角: 2.1° (流动模式可优化)<br><br>
+                        
+                        <strong style="color: #0066cc;">协同控制原理：</strong><br>
+                        • 增底吹: 强化底部上升流，打破温度分层<br>
+                        • 动态枪位: 周期性改变冲击区域，消除搅拌盲区<br>
+                        • 调倾角: 利用重力优化环流模式，增强横向混合<br>
+                        • 微降顶氧: 避免过度搅拌导致氧化或喷溅<br>
+                        • 四参数联动: 底吹+枪位+倾角+氧流构建最优流场
                     </div>
                 </details>
                 <div class="suggestion-buttons">
@@ -1034,23 +1112,40 @@
                     <span style="font-size: 12px; color: #999;">12分钟前</span>
                 </div>
                 <div class="suggestion-action">
-                    🔹 辅助操作：调整炉倾角至 2.5° （优化出钢准备）
+                    🔹 出钢准备优化：倾角 + 渣位 + 温度储备<br>
+                    <div style="margin-top: 8px; padding-left: 15px; font-size: 11px; color: #303030; line-height: 1.8;">
+                        ① 调整炉倾角至 <strong style="color: #0066cc;">2.5°</strong>（优化渣钢分离）<br>
+                        ② 末期适量补加石灰 <strong style="color: #0066cc;">200 kg</strong>（稀化炉渣，便于流动）<br>
+                        ③ 终点前提枪至 <strong style="color: #0066cc;">1750 mm</strong>（降低渣位，减少卷渣）<br>
+                        ④ 预热包底温度至 <strong style="color: #0066cc;">1200°C</strong>（减少温降）
+                    </div>
                 </div>
                 <div class="suggestion-effect">
-                    📊 预期效果: 优化渣钢分离，提前出钢准备<br>
-                    ⏱️ 可缩短出钢时间约 45秒<br>
-                    ⚡ 风险等级: 极低 | 置信度: 72%
+                    📊 协同效果: 全方位优化出钢流程，缩短周转时间<br>
+                    ⏱️ 出钢时间缩短: 约55秒 (提升效率8.5%)<br>
+                    🎯 渣钢分离质量提升: 卷渣率从3.2%降至1.8%<br>
+                    🎯 钢包到站温度提升: +12°C (减少回炉风险)<br>
+                    💰 经济效益: 节省回炉成本¥180/炉 + 产能提升收益<br>
+                    ⚡ 风险等级: 极低 | 置信度: 79%
                 </div>
                 <div class="confidence-bar">
-                    <div class="confidence-fill" style="width: 72%;"></div>
+                    <div class="confidence-fill" style="width: 79%;"></div>
                 </div>
                 <details>
-                    <summary style="cursor: pointer; color: #0066cc; font-size: 11px;">主要驱动因子 ▼</summary>
+                    <summary style="cursor: pointer; color: #0066cc; font-size: 11px;">主要驱动因子与协同原理 ▼</summary>
                     <div style="font-size: 10px; color: #606060; margin-top: 8px; padding-left: 10px; font-family: 'Consolas', monospace;">
-                        • 当前炉倾角: 2.0°<br>
-                        • 预计3-5分钟后达到终点<br>
-                        • 提前调整有利于快速出钢<br>
-                        • 历史优秀炉次平均倾角: 2.5°
+                        <strong style="color: #ff8800;">驱动因子：</strong><br>
+                        • 当前炉倾角: 2.1° (出钢角度偏小)<br>
+                        • 预计3-5分钟后达到终点（提前准备窗口）<br>
+                        • 当前渣位: 850mm (略高，影响出钢流畅性)<br>
+                        • 历史优秀炉次平均倾角: 2.5°<br>
+                        • 钢包预热温度: 1180°C (偏低15°C)<br><br>
+                        
+                        <strong style="color: #0066cc;">协同控制原理：</strong><br>
+                        • 倾角+提枪: 双重降低渣位，减少钢液夹渣<br>
+                        • 补石灰: 稀释炉渣粘度，加速流动分离<br>
+                        • 预热钢包: 减少温降，避免终点温度过高补偿<br>
+                        • 四参数联动: 物理条件+化学条件全面优化出钢工艺
                     </div>
                 </details>
                 <div class="suggestion-buttons">
@@ -1066,30 +1161,48 @@
                     <span style="font-size: 12px; color: #999;">刚刚</span>
                 </div>
                 <div class="suggestion-action">
-                    🔹 调枪位 + 辅助操作：降低枪位50mm + 投入消泡剂
+                    🔹 泡沫抑制综合方案：枪位 + 氧流 + 消泡 + 底吹<br>
+                    <div style="margin-top: 8px; padding-left: 15px; font-size: 11px; color: #303030; line-height: 1.8;">
+                        ① 降低枪位至 <strong style="color: #0066cc;">1530 mm</strong>（-50mm，压制泡沫层）<br>
+                        ② 短时降氧至 <strong style="color: #0066cc;">23000 Nm³/min</strong> 持续2分钟（-15%，减缓反应）<br>
+                        ③ 投入消泡剂 <strong style="color: #0066cc;">200 kg</strong>（化学破泡）<br>
+                        ④ 降低底吹至 <strong style="color: #0066cc;">65 Nm³/min</strong>（-21%，减少气泡携带）<br>
+                        ⑤ 补加白云石 <strong style="color: #0066cc;">120 kg</strong>（改善渣相粘度）
+                    </div>
                 </div>
                 <div class="suggestion-effect">
-                    📊 预期效果: 抑制泡沫生成，降低溢渣风险<br>
-                    🎯 目标泡沫指数: 2.5 (当前3.8)<br>
-                    ⚠️ 风险等级: 中 | 置信度: 88%
+                    📊 协同效果: 物理+化学综合抑制泡沫，保障安全生产<br>
+                    🎯 预测泡沫指数降至: 2.3 (目标<2.5，降低39%)<br>
+                    🎯 预测渣位降低: 从920mm降至780mm（-140mm）<br>
+                    🎯 溢渣风险降低: 从45%降至8% (风险大幅下降)<br>
+                    💡 智能均衡: 降枪+降氧+降底吹三重物理抑制，消泡剂+白云石化学优化<br>
+                    ⚠️ 风险等级: 中 | 置信度: 91%
                 </div>
                 <div class="confidence-bar">
-                    <div class="confidence-fill" style="width: 88%;"></div>
+                    <div class="confidence-fill" style="width: 91%;"></div>
                 </div>
                 <details>
-                    <summary style="cursor: pointer; color: #0066cc; font-size: 11px;">主要驱动因子 ▼</summary>
+                    <summary style="cursor: pointer; color: #0066cc; font-size: 11px;">主要驱动因子与协同原理 ▼</summary>
                     <div style="font-size: 10px; color: #606060; margin-top: 8px; padding-left: 10px; font-family: 'Consolas', monospace;">
-                        • 泡沫指数: 3.8 (警戒线3.5)<br>
-                        • 渣位高度: 920mm (持续上升)<br>
-                        • 烟气CO含量: 26% (偏高，反应剧烈)<br>
-                        • 视觉检测: 泡沫溢出风险45%<br>
-                        • 建议: 降枪压泡 + 投消泡剂200kg
+                        <strong style="color: #ff8800;">驱动因子：</strong><br>
+                        • 泡沫指数: 3.8 (超警戒线3.5，紧急状态)<br>
+                        • 渣位高度: 920mm (持续上升中，正常<850mm)<br>
+                        • 烟气CO含量: 26% (偏高，脱碳反应剧烈产气)<br>
+                        • 视觉AI检测: 泡沫溢出风险45% (高风险)<br>
+                        • 底吹流量: 82 Nm³/min (气泡携带加剧泡沫)<br><br>
+                        
+                        <strong style="color: #0066cc;">协同控制原理：</strong><br>
+                        • 降枪+降氧: 降低冲击强度和供氧速率，从源头减少CO生成<br>
+                        • 降底吹: 减少气泡上升携带，避免加剧泡沫化<br>
+                        • 消泡剂: 破坏泡沫表面张力，快速消泡<br>
+                        • 白云石: 改善炉渣流变学特性，降低起泡倾向<br>
+                        • 五参数联动: 物理抑制（枪位+氧流+底吹）+ 化学优化（消泡剂+白云石）
                     </div>
                 </details>
                 <div class="suggestion-buttons">
-                    <button class="btn-adopt" onclick="adoptSuggestion(6)">✓ 采纳</button>
-                    <button class="btn-adjust" onclick="adjustSuggestion(6)">⚙ 微调</button>
-                    <button class="btn-reject" onclick="rejectSuggestion(6)">✗ 拒绝</button>
+                    <button class="btn-adopt" onclick="adoptSuggestion(7)">✓ 采纳</button>
+                    <button class="btn-adjust" onclick="adjustSuggestion(7)">⚙ 微调</button>
+                    <button class="btn-reject" onclick="rejectSuggestion(7)">✗ 拒绝</button>
                 </div>
             </div>
         </div>
